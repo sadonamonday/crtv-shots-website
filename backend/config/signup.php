@@ -2,7 +2,7 @@
 session_start();
 include __DIR__ . "/database.php";
 
-require __DIR__ . "/../../../vendor/autoload.php"; 
+require __DIR__ . "/../../vendor/autoload.php"; 
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
