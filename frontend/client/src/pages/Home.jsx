@@ -1,5 +1,5 @@
 // src/components/Home.jsx
-import React, { Suspense, useRef, useMemo } from "react";
+import React, { Suspense, useRef, useMemo, useEffect } from "react";
 import * as THREE from "three";
 import { Canvas, useFrame, useThree, } from "@react-three/fiber";
 import {
@@ -8,10 +8,23 @@ import {
     Html,
     Environment,
     useTexture,
+    Preload,
 } from "@react-three/drei";
+import { Link } from "react-router-dom";
 ;
 
-
+// Preload GLTF and textures so next route has no loader flash
+function PreloadAssets() {
+    useEffect(() => {
+        try {
+            useGLTF.preload("/assets/iphone_6_model.glb");
+            useTexture.preload("/assets/CRTV_pic.jpg");
+        } catch (e) {
+            // ignore if already cached or during SSR
+        }
+    }, []);
+    return null;
+}
 
 /**
  * Helper: PhoneModel
@@ -89,7 +102,7 @@ function CameraRig() {
 function Loader() {
     return (
         <Html center>
-            <div style={{ color: "white", fontSize: 14 }}>Loading scene...</div>
+            <div className="text-white text-sm">Loading scene...</div>
         </Html>
     );
 }
@@ -110,11 +123,18 @@ export default function Home() {
 
     return (
         <div className="fixed inset-0 w-screen h-screen overflow-hidden">
+            <PreloadAssets />
             {/* Overlay UI (logo, vertical nav, social icons) rendered by React normally */}
             <div className="absolute top-9 left-9 z-20 flex flex-col items-start gap-6 ">
                 <img src="/assets/logo.png" alt="logo" className="w-16 h-auto mb-2" />
                 <nav className="flex flex-col gap-4 font-sans font-black tracking-wide ">
-                    <a  className=" text-[40px] font-black !text-[#388B4C]">VIDEOS</a>
+                    <Link
+                        to="/videos"
+                        state={{ startRotation: { x: 0, y: Math.PI / 1.3, z: 0 } }}
+                        className=" text-[40px] font-black !text-[#388B4C]"
+                    >
+                        VIDEOS
+                    </Link>
                     <a  className=" text-[40px] font-black !text-[#388B4C]">SHOP</a>
                     <a  className=" text-[40px] font-black !text-[#388B4C]">BOOKINGS</a>
                     <a  className=" text-[40px] font-black !text-[#388B4C]">GALLERY</a>
@@ -140,7 +160,8 @@ export default function Home() {
             }
             >
                 {/* Suspense allows us to show a loader until async assets (GLB, HDRI) are ready */}
-                <Suspense fallback={<Loader />}>
+                <Suspense fallback={null}>
+                    <Preload all />
                     <CameraRig />
 
                     {/* Environment HDRI:
