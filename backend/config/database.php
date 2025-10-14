@@ -1,13 +1,14 @@
 <?php
 $host = "localhost";
 $db_name = "crtvshots_db";
-$username = "root";
-$password = "";
-$port = 3306; // Change if using 3307 in XAMPP
-try {
-    $conn = new PDO("mysql:host={$host};dbname={$db_name};port={$port}", $username, $password);
-    $conn->exec("set names utf8");
-} catch(PDOException $exception){
-    echo "Connection error: " . $exception->getMessage();
+$username = "CRTVSHOTS";     
+$password = "CRTV1234";    
+$port = 3306;
+
+$con = mysqli_connect($host, $username, $password, $db_name, $port);
+
+if (!$con) {
+    die("Connection Failed: " . mysqli_connect_error());
 }
+
 ?>

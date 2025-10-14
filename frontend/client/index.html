@@ -1,13 +1,129 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vite + React</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CRTVSHOTS</title>
+  <!-- Font Awesome for social media icons -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      height: 100vh;
+      display: flex;
+      background: url('img/background.jpg') no-repeat center center/cover;
+      /*color: white;*/
+    }
+
+    /* Vertical navbar */
+    nav {
+      width: 220px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 20px;
+    }
+
+    /* Logo styling */
+    .logo img {
+      width: 120px;
+      height: auto;
+      margin-bottom: 30px;
+    }
+
+    nav ul {
+      list-style: none;
+      flex-grow: 1;
+    }
+
+    nav ul li {
+      margin: 18px 0;
+    }
+
+    nav ul li a {
+      color: rgb(11, 11, 11);
+      text-decoration: none;
+      font-size: 20px;
+      font-weight: bold;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.7); /* keeps text readable */
+      transition: 0.3s;
+    }
+
+    nav ul li a:hover {
+      color: #058b36;
+    }
+
+    /* Social media section */
+    /* Social media section */
+.social-icons {
+  display: flex;
+  flex-direction: row;  /* make them horizontal */
+  justify-content: center; /* center them horizontally */
+  gap: 20px; /* space between icons */
+  margin-top: 20px;
+}
+
+.social-icons a {
+  color: black;
+  font-size: 22px;
+  transition: 0.3s;
+}
+
+.social-icons a:hover {
+      color: #058b36;
+}
+
+
+    /* Right-side picture */
+    .right-image {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .right-image img {
+      max-width: 400px;
+      width: 100%;
+      border-radius: 12px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+    }
+  </style>
+</head>
+<body>
+  <!-- Navigation bar -->
+  <nav>
+    <!-- Logo -->
+    <div class="logo">
+      <img src="logo.png" alt="CRTVSHOTS Logo">
+    </div>
+
+    <ul>
+      <li><a href="#videos">Videos</a></li>
+      <li><a href="#shop">Shop</a></li>
+      <li><a href="#booking">Booking</a></li>
+      <li><a href="#gallery">Gallery</a></li>
+      <li><a href="#testimonials">Testimonials</a></li>
+      <li><a href="#about">About</a></li>
+    </ul>
+
+    <div class="social-icons">
+      <a href="https://instagram.com/yourprofile" target="_blank"><i class="fab fa-instagram"></i></a>
+      <a href="https://tiktok.com/@yourprofile" target="_blank"><i class="fab fa-tiktok"></i></a>
+      <a href="https://x.com/yourprofile" target="_blank"><i class="fab fa-x-twitter"></i></a>
+    </div>
+  </nav>
+
+  <!-- Right-side image -->
+  <div class="right-image">
+    <img src="side-picture.jpg" alt="CRTVSHOTS showcase">
+  </div>
+</body>
 </html>
