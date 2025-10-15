@@ -135,22 +135,22 @@ export default function Home() {
                     >
                         VIDEOS
                     </Link>
-                    <a  className=" text-[40px] font-black !text-[#388B4C]">SHOP</a>
-                    <a  className=" text-[40px] font-black !text-[#388B4C]">BOOKINGS</a>
-                    <a  className=" text-[40px] font-black !text-[#388B4C]">GALLERY</a>
-                    <a  className=" text-[40px] font-black !text-[#388B4C]">TESTIMONIALS</a>
-                    <a className=" text-[40px] font-black !text-[#388B4C]">ABOUT</a>
+                    <Link to="/shop" className=" text-[40px] font-black !text-[#388B4C]">SHOP</Link>
+                    <Link to="/bookings" className=" text-[40px] font-black !text-[#388B4C]">BOOKINGS</Link>
+                    <Link to="/gallery" className=" text-[40px] font-black !text-[#388B4C]">GALLERY</Link>
+                    <Link to="/testimonials" className=" text-[40px] font-black !text-[#388B4C]">TESTIMONIALS</Link>
+                    <Link to="/about" className=" text-[40px] font-black !text-[#388B4C]">ABOUT</Link>
                 </nav>
             </div>
 
             {/* Social icons centered bottom */}
-            {/*<div style={styles.bottomSocial}>*/}
-            {/*    /!* Replace with your SVG icons or <img /> files *!/*/}
-            {/*    <span style={styles.socialIcon}>▶</span>*/}
-            {/*    <span style={styles.socialIcon}>📸</span>*/}
-            {/*    <span style={styles.socialIcon}>🐦</span>*/}
-            {/*    <span style={styles.socialIcon}>🎵</span>*/}
-            {/*</div>*/}
+            <div className="absolute bottom-6 left-0 right-0 z-20">
+                <div className="mx-auto flex items-center justify-center gap-6">
+                    <img src="/icons/instagram.png" alt="Instagram" className="h-8 w-8 object-contain opacity-90 hover:opacity-100 transition" />
+                    <img src="/icons/icons8-youtube-50.png" alt="YouTube" className="h-8 w-8 object-contain opacity-90 hover:opacity-100 transition" />
+                    <img src="/icons/icons8-tiktok-50.png" alt="TikTok" className="h-8 w-8 object-contain opacity-90 hover:opacity-100 transition" />
+                </div>
+            </div>
 
             {/* The 3D Canvas */}
             <Canvas

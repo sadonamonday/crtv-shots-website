@@ -129,7 +129,7 @@ export default function Videos() {
     const [currentVideoId, setCurrentVideoId] = useState(null);
     const [ytError, setYtError] = useState(null);
 
-    // Use provided API key; allow override with env var if present
+    // API key; allow override with env var if present
     const apiKey = import.meta?.env?.VITE_YT_API_KEY || "AIzaSyBtwoYiS91VUqmFVAgBVhhQOEZaxhQqtQ4";
     // Default to the playlist already used on this page if none provided
     const playlistId = import.meta?.env?.VITE_YT_PLAYLIST_ID || "PLt0fJ93Y4T4or_SqF7GybIBGZGjK8HG8t";
@@ -209,8 +209,8 @@ export default function Videos() {
                             {currentVideoId ? (
                                 <iframe
                                     id="player"
-                                    width="1200"
-                                    height="675"
+                                    width="1720"
+                                    height="967,50"
                                     src={`https://www.youtube.com/embed/${currentVideoId}?autoplay=0`}
                                     title="YouTube video player"
                                     style={{ borderRadius: '12px', border: 'none' }}

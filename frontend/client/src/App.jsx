@@ -2,6 +2,11 @@ import {BrowserRouter, Route, Routes} from "react-router-dom";
 import React from "react";
 import Home from "./pages/Home.jsx";
 import Videos from "./pages/Videos.jsx";
+import Shop from "./pages/Shop.jsx";
+import BookingPage from "./pages/BookingPage.jsx";
+import Gallery from "./pages/Gallery.jsx";
+import About from "./pages/About.jsx";
+import Testimonials from "./pages/Testimonials.jsx";
 
 class ErrorBoundary extends React.Component {
     constructor(props) {
@@ -37,6 +42,11 @@ function App() {
                 <Routes>
                     <Route path="/" element={<Home/>} />
                     <Route path="/videos" element={<Videos/>} />
+                    <Route path="/shop" element={<Shop/>} />
+                    <Route path="/bookings" element={<BookingPage/>} />
+                    <Route path="/gallery" element={<Gallery/>} />
+                    <Route path="/about" element={<About/>} />
+                    <Route path="/testimonials" element={<Testimonials/>} />
                 </Routes>
             </ErrorBoundary>
         </BrowserRouter>

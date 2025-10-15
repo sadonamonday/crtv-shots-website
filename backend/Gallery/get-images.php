@@ -3,7 +3,7 @@
 header('Content-Type: application/json');
 
 // database connection
-//goig to use env variables once db connectionn established
+//going to use env variables once db connectionn established
 $host = '';
 $db   = '';
 $user = '';
