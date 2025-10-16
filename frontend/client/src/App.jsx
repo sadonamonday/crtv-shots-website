@@ -7,6 +7,9 @@ import BookingPage from "./pages/BookingPage.jsx";
 import Gallery from "./pages/Gallery.jsx";
 import About from "./pages/About.jsx";
 import Testimonials from "./pages/Testimonials.jsx";
+import Login from "./pages/Login.jsx";
+import AddTestimonial from "./pages/AddTestimonial.jsx";
+import AdminDashboard from "./pages/admin/Dashboard.jsx";
 
 class ErrorBoundary extends React.Component {
     constructor(props) {
@@ -47,6 +50,18 @@ function App() {
                     <Route path="/gallery" element={<Gallery/>} />
                     <Route path="/about" element={<About/>} />
                     <Route path="/testimonials" element={<Testimonials/>} />
+                    <Route path="/add-testimonial" element={<AddTestimonial />} />
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/admin" element={<AdminDashboard />} />
+                    {/*<Route path="/admin/orders" element={<React.Suspense fallback={<div style={{padding:24,color:'#fff'}}>Loading…</div>}>{React.createElement(require('./pages/admin/Orders.jsx').default)}</React.Suspense>} />*/}
+                    {/*<Route path="/admin/bookings" element={<React.Suspense fallback={<div style={{padding:24,color:'#fff'}}>Loading…</div>}>{React.createElement(require('./pages/admin/Bookings.jsx').default)}</React.Suspense>} />*/}
+                    {/*<Route path="/admin/products-services" element={<React.Suspense fallback={<div style={{padding:24,color:'#fff'}}>Loading…</div>}>{React.createElement(require('./pages/admin/ProductsServices.jsx').default)}</React.Suspense>} />*/}
+                    {/*<Route path="/admin/content" element={<React.Suspense fallback={<div style={{padding:24,color:'#fff'}}>Loading…</div>}>{React.createElement(require('./pages/admin/Content.jsx').default)}</React.Suspense>} />*/}
+                    {/*<Route path="/admin/reviews" element={<React.Suspense fallback={<div style={{padding:24,color:'#fff'}}>Loading…</div>}>{React.createElement(require('./pages/admin/Reviews.jsx').default)}</React.Suspense>} />*/}
+                    {/*<Route path="/admin/payments" element={<React.Suspense fallback={<div style={{padding:24,color:'#fff'}}>Loading…</div>}>{React.createElement(require('./pages/admin/Payments.jsx').default)}</React.Suspense>} />*/}
+                    {/*<Route path="/admin/analytics" element={<React.Suspense fallback={<div style={{padding:24,color:'#fff'}}>Loading…</div>}>{React.createElement(require('./pages/admin/Analytics.jsx').default)}</React.Suspense>} />*/}
+                    {/*<Route path="/admin/promotions" element={<React.Suspense fallback={<div style={{padding:24,color:'#fff'}}>Loading…</div>}>{React.createElement(require('./pages/admin/Promotions.jsx').default)}</React.Suspense>} />*/}
+                    {/*<Route path="/admin/availability" element={<React.Suspense fallback={<div style={{padding:24,color:'#fff'}}>Loading…</div>}>{React.createElement(require('./pages/admin/Availability.jsx').default)}</React.Suspense>} />*/}
                 </Routes>
             </ErrorBoundary>
         </BrowserRouter>
