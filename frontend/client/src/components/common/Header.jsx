@@ -10,7 +10,7 @@ const Header = () => {
                 <div className="flex justify-between h-16">
                     {/* Logo */}
                     <div className="flex-shrink-0 flex items-center">
-                        <a href="#" className="flex items-center">
+                        <a href="/" className="flex items-center">
                             <img
                                 className="h-20 w-auto"
                                 src="../assets/logo.png"
