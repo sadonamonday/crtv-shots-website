@@ -22,6 +22,8 @@ const Payments = React.lazy(() => import('./pages/admin/Payments.jsx'));
 const Analytics = React.lazy(() => import('./pages/admin/Analytics.jsx'));
 const Promotions = React.lazy(() => import('./pages/admin/Promotions.jsx'));
 const Availability = React.lazy(() => import('./pages/admin/Availability.jsx'));
+import Verify2FA from "./pages/Verify2fa.jsx";
+import UserProfile from "./pages/UserProfile";
 
 class ErrorBoundary extends React.Component {
     constructor(props) {
@@ -64,6 +66,7 @@ function App() {
                     <Route path="/testimonials" element={<Testimonials/>} />
                     <Route path="/add-testimonial" element={<AddTestimonial />} />
                     <Route path="/login" element={<Login />} />
+                    <Route path="/Verify2FA" element={<Verify2FA />} />
                     <Route path="/admin" element={<AdminDashboard />} />
                     <Route path="/admin/gallery" element={<GalleryAdmin />} />
                     <Route path="/profile" element={<Profile />} />

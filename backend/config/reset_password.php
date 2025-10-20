@@ -48,7 +48,7 @@ if (isset($_POST['reset_password']) && isset($_GET['token'])) {
         mysqli_stmt_bind_param($stmt, "ss", $hash, $token_hash);
 
         if (mysqli_stmt_execute($stmt)) {
-            echo "<script>alert('Password reset successful! You can now log in.'); window.location.href='login.php';</script>";
+            echo "<script>alert('Password reset successful! You can now log in.'); window.location.href='http://localhost:5174/login';</script>";
             exit();
         } else {
             $error = "Failed to reset password. Please try again later.";
@@ -63,6 +63,11 @@ if (isset($_POST['reset_password']) && isset($_GET['token'])) {
 <title>Reset Password</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/css/bootstrap.min.css" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+<style>
+.valid { border-color: #198754 !important; }   /* green border */
+.invalid { border-color: #dc3545 !important; } /* red border */
+.form-text { font-size: 0.9rem; }
+</style>
 </head>
 <body>
 <div class="container my-5">
@@ -71,15 +76,21 @@ if (isset($_POST['reset_password']) && isset($_GET['token'])) {
     <?php if (!empty($error)) echo "<div class='alert alert-danger text-center'>$error</div>"; ?>
 
     <?php if ($token_valid): ?>
-    <form method="post">
+    <form method="post" novalidate>
+        <!-- New password input -->
         <div class="mb-3 position-relative">
             <input type="password" class="form-control pe-5" name="password" id="password" placeholder="New Password" required>
             <i class="fa-solid fa-eye position-absolute top-50 end-0 translate-middle-y pe-3" id="toggleNewPassword" style="cursor:pointer;"></i>
+            <small id="passwordFeedback" class="form-text"></small>
         </div>
+
+        <!-- Confirm password input -->
         <div class="mb-3 position-relative">
             <input type="password" class="form-control pe-5" name="confirm_password" id="confirm_password" placeholder="Confirm New Password" required value="<?php echo $confirm_password_val; ?>">
             <i class="fa-solid fa-eye position-absolute top-50 end-0 translate-middle-y pe-3" id="toggleConfirmPassword" style="cursor:pointer;"></i>
+            <small id="confirmFeedback" class="form-text"></small>
         </div>
+
         <div class="d-grid">
             <input type="submit" name="reset_password" value="Reset Password" class="btn btn-dark">
         </div>
@@ -88,20 +99,58 @@ if (isset($_POST['reset_password']) && isset($_GET['token'])) {
 </div>
 
 <script>
-// Toggle new password
-const toggleNew = document.getElementById('toggleNewPassword');
-const newPass = document.getElementById('password');
-toggleNew.addEventListener('click', () => {
-    newPass.type = newPass.type === 'password' ? 'text' : 'password';
-    toggleNew.classList.toggle('fa-eye-slash');
+// Toggle password visibility
+function toggleVisibility(toggleId, inputId) {
+  const toggle = document.getElementById(toggleId);
+  const input = document.getElementById(inputId);
+  toggle.addEventListener('click', () => {
+    input.type = input.type === 'password' ? 'text' : 'password';
+    toggle.classList.toggle('fa-eye-slash');
+  });
+}
+toggleVisibility('toggleNewPassword', 'password');
+toggleVisibility('toggleConfirmPassword', 'confirm_password');
+
+// Helper: mark valid/invalid fields
+function markField(input, valid) {
+  input.classList.remove('valid', 'invalid');
+  if (input.value.trim() !== '') input.classList.add(valid ? 'valid' : 'invalid');
+}
+
+// Password validation (live)
+const pass = document.getElementById('password');
+const passFeedback = document.getElementById('passwordFeedback');
+pass.addEventListener('input', e => {
+  const val = e.target.value;
+  const rules = [];
+
+  if (val.length < 8) rules.push("at least 8 characters");
+  if (!/[A-Z]/.test(val)) rules.push("1 uppercase letter");
+  if (!/[0-9]/.test(val)) rules.push("1 number");
+  if (!/[\W]/.test(val)) rules.push("1 special character");
+
+  if (rules.length === 0) {
+    passFeedback.textContent = "Password is strong.";
+    passFeedback.classList.remove("text-danger");
+    passFeedback.classList.add("text-success");
+    markField(pass, true);
+  } else {
+    passFeedback.textContent = "Must include: " + rules.join(", ");
+    passFeedback.classList.remove("text-success");
+    passFeedback.classList.add("text-danger");
+    markField(pass, false);
+  }
 });
 
-// Toggle confirm password
-const toggleConfirm = document.getElementById('toggleConfirmPassword');
-const confirmPass = document.getElementById('confirm_password');
-toggleConfirm.addEventListener('click', () => {
-    confirmPass.type = confirmPass.type === 'password' ? 'text' : 'password';
-    toggleConfirm.classList.toggle('fa-eye-slash');
+// Confirm password validation (live)
+const conf = document.getElementById('confirm_password');
+const confFeedback = document.getElementById('confirmFeedback');
+conf.addEventListener('input', () => {
+  const match = conf.value === pass.value && conf.value !== '';
+  markField(conf, match);
+  confFeedback.textContent = match ? "Passwords match." : "Passwords do not match.";
+  confFeedback.classList.toggle("text-success", match);
+  confFeedback.classList.toggle("text-danger", !match);
 });
 </script>
 </body>

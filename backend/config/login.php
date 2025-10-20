@@ -1,66 +1,107 @@
 <?php
+header("Access-Control-Allow-Origin: http://localhost:5173");
+header("Access-Control-Allow-Headers: Content-Type");
+header("Access-Control-Allow-Methods: POST");
+header("Access-Control-Allow-Credentials: true");
+header("Content-Type: application/json");
+
+include "database.php";
 session_start();
-include __DIR__ . "/database.php";
 
-$error = "";
+// Include PHPMailer classes manually
+require 'C:/xampp/htdocs/crtv-shots-website/vendor/phpmailer/phpmailer/src/PHPMailer.php';
+require 'C:/xampp/htdocs/crtv-shots-website/vendor/phpmailer/phpmailer/src/SMTP.php';
+require 'C:/xampp/htdocs/crtv-shots-website/vendor/phpmailer/phpmailer/src/Exception.php';
 
-if (isset($_POST['login'])) {
-    $email = trim($_POST['user_email']);
-    $password = $_POST['user_password'];
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
 
-    $stmt = $con->prepare("SELECT * FROM signup WHERE user_email=?");
-    $stmt->bind_param("s", $email);
-    $stmt->execute();
-    $user = $stmt->get_result()->fetch_assoc();
+if (!isset($_POST['user_email']) || !isset($_POST['user_password'])) {
+    echo json_encode(["success" => false, "message" => "Email and password are required."]);
+    exit;
+}
 
-    if ($user && password_verify($password, $user['user_password'])) {
-        if ($user['email_verified'] == 1) {
-            $_SESSION['user_id'] = $user['user_id'];
-            header("Location: ../../frontend/client/index.html");
-            exit;
-        } else {
-            $error = "Please verify your email before logging in.";
-        }
-    } else {
-        $error = "Invalid email or password.";
+$email = trim($_POST['user_email']);
+$password = trim($_POST['user_password']);
+
+// Fetch user
+$stmt = $con->prepare("SELECT user_id, user_password, two_factor_code, two_factor_expires_at, email_verified FROM signup WHERE user_email = ?");
+$stmt->bind_param("s", $email);
+$stmt->execute();
+$result = $stmt->get_result();
+
+if ($result->num_rows === 0) {
+    echo json_encode(["success" => false, "message" => "Email not registered."]);
+    exit;
+}
+
+
+$row = $result->fetch_assoc();
+
+if ($row['email_verified'] == 0) {
+    echo json_encode([
+        "success" => false,
+        "email_verified" => false,
+        "message" => "Please verify your email before logging in."
+    ]);
+    $stmt->close();
+    $con->close();
+    exit;
+}
+
+
+// Verify password
+if (!password_verify($password, $row['user_password'])) {
+    echo json_encode(["success" => false, "message" => "Incorrect password."]);
+    exit;
+}
+
+
+// Generate 2FA code only if it doesn't exist or expired
+$current_time = date("Y-m-d H:i:s");
+if (empty($row['two_factor_code']) || $row['two_factor_expires_at'] < $current_time) {
+    $twoFA = rand(100000, 999999); // 6-digit code
+    $expires = date("Y-m-d H:i:s", strtotime("+5 minutes")); // code valid 5 minutes
+
+    $update = $con->prepare("UPDATE signup SET two_factor_code = ?, two_factor_expires_at = ? WHERE user_id = ?");
+    $update->bind_param("ssi", $twoFA, $expires, $row['user_id']);
+    $update->execute();
+    $update->close();
+
+    // Send code via PHPMailer
+    $mail = new PHPMailer(true);
+    try {
+        $mail->isSMTP();
+        $mail->Host = 'smtp.gmail.com';
+        $mail->SMTPAuth = true;
+        $mail->Username = 'ngwenya1305@gmail.com';  // replace with your Gmail
+        $mail->Password = 'ghsr bssh ztza ulid';     // Gmail App Password
+        $mail->SMTPSecure = 'tls';
+        $mail->Port = 587;
+
+        $mail->setFrom('no-reply@crtvshots.com', 'CRTV Shots');
+        $mail->addAddress($email);
+
+        $mail->isHTML(true);
+        $mail->Subject = 'Your 2FA Verification Code';
+        $mail->Body = "Your verification code is: <b>$twoFA</b>. It expires in 5 minutes.";
+
+        $mail->send();
+        // Code sent successfully
+    } catch (Exception $e) {
+        error_log("Mailer Error: " . $mail->ErrorInfo);
     }
 }
+
+// Set session
+$_SESSION['user_id'] = $row['user_id'];
+
+echo json_encode([
+    "success" => true,
+    "two_fa" => true,
+    "message" => "2FA verification required."
+]);
+
+$stmt->close();
+$con->close();
 ?>
-<!DOCTYPE html>
-<html>
-<head>
-<meta charset="UTF-8">
-<title>Login</title>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
-</head>
-<body class="container my-5">
-<h2>Login</h2>
-
-<?php if($error) echo "<div class='alert alert-danger'>$error</div>"; ?>
-
-<form method="post">
-  <div class="mb-2 position-relative">
-      <input class="form-control" type="email" name="user_email" placeholder="Email" required>
-  </div>
-  <div class="mb-2 position-relative">
-      <input class="form-control pe-5" type="password" name="user_password" id="user_password" placeholder="Password" required>
-      <i class="fa-solid fa-eye position-absolute top-50 end-0 translate-middle-y pe-3" id="togglePassword" style="cursor:pointer;"></i>
-  </div>
-  <button class="btn btn-dark" name="login">Login</button>
-</form>
-
-<p class="mt-3"><a href="forgot_password.php">Forgot Password?</a></p>
-<p class="mt-2">Don't have an account? <a href="signup.php">Sign up</a></p>
-
-<script>
-// Toggle password visibility
-const togglePassword = document.getElementById('togglePassword');
-const passInput = document.getElementById('user_password');
-togglePassword.addEventListener('click', () => {
-    passInput.type = passInput.type === 'password' ? 'text' : 'password';
-    togglePassword.classList.toggle('fa-eye-slash');
-});
-</script>
-</body>
-</html>
