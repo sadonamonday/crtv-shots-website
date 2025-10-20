@@ -52,7 +52,7 @@ if (isset($_POST['forgot_password'])) {
             $mail->setFrom('your-email@gmail.com', 'CRTVSHOTS');
             $mail->addAddress($user_email);
 
-            $reset_link = "http://localhost/CRTV%20Shots/crtv-shots-website/backend/config/reset_password.php?token=$token";
+            $reset_link = "http://localhost/crtv-shots-website/backend/config/reset_password.php?token=$token";
 
             $mail->isHTML(true);
             $mail->Subject = "Password Reset Request";
@@ -99,7 +99,7 @@ if (isset($_POST['forgot_password'])) {
         </div>
     </form>
     <p class="text-center mt-3">
-        Remembered your password? <a href="login.php" class="text-danger">Login</a>
+        Remembered your password? <a href="http://localhost:5173/login" class="text-danger">Login</a>
     </p>
 </div>
 </body>

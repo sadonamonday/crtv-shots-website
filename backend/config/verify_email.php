@@ -14,7 +14,10 @@ if (isset($_GET['token'])) {
             $update = $con->prepare("UPDATE signup SET email_verified=1, verification_token=NULL, verification_token_expires_at=NULL WHERE user_id=?");
             $update->bind_param("i", $row['user_id']);
             $update->execute();
-            echo "<h3>Email verified successfully. <a href='login.php'>Login now</a>.</h3>";
+             echo "
+                <h3>Email verified successfully.</h3>
+                <p><a href='http://localhost:5173/login' style='color: #f41826ff; font-weight: bold; text-decoration: none;'>Login now</a></p>
+            ";
         } else {
             echo "<h3>Token expired. Please sign up again.</h3>";
         }

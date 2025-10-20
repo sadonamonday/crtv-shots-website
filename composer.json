@@ -1,5 +1,5 @@
 {
-    "name": "phpmailer/phpmailer",
+    "name": "crtv-shots-website/project",
     "type": "library",
     "description": "PHPMailer is a full-featured email creation and transfer class for PHP",
     "authors": [
@@ -35,7 +35,8 @@
         "php": ">=5.5.0",
         "ext-ctype": "*",
         "ext-filter": "*",
-        "ext-hash": "*"
+        "ext-hash": "*",
+        "phpmailer/phpmailer": "^7.0"
     },
     "require-dev": {
         "dealerdirect/phpcodesniffer-composer-installer": "^1.0",
