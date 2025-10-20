@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import Header from "../components/common/Header.jsx";
 import Footer from "../components/common/Footer.jsx";
+import buildApiUrl from "../utils/api";
 
 function clampRating(value) {
     const n = Number.isFinite(Number(value)) ? Math.floor(Number(value)) : 0;
@@ -31,14 +32,14 @@ export default function Testimonials() {
                 // Check auth (adjust to your backend)
                 // Expect 200 when logged in; ignore body for simplicity
                 try {
-                    const me = await fetch('/api/auth/me', { credentials: 'include' });
+                    const me = await fetch(buildApiUrl('/auth/me.php'), { credentials: 'include' });
                     setUserLoggedIn(me.ok);
                 } catch {
                     setUserLoggedIn(false);
                 }
 
                 // Fetch testimonials
-                const res = await fetch('/backend/api/reviews/testimonials.php', { credentials: 'include' });
+                const res = await fetch(buildApiUrl('/reviews/testimonials.php'), { credentials: 'include' });
                 if (!res.ok) throw new Error(`Failed to load testimonials (${res.status})`);
                 const data = await res.json();
                 // Expect an array of { id?, name, rating, message }

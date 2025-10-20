@@ -1,5 +1,5 @@
 // src/components/Home.jsx
-import React, { Suspense, useRef, useMemo, useEffect } from "react";
+import React, { Suspense, useRef, useMemo, useEffect, useState } from "react";
 import * as THREE from "three";
 import { Canvas, useFrame, useThree, } from "@react-three/fiber";
 import {
@@ -121,6 +121,24 @@ export default function Home() {
     // const screenTexture = useTexture('/assets/myscreen.png');
  //   const screenTexture = useTexture('/assets/CRTV_pic.jpg');
 
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const [avatarUrl, setAvatarUrl] = useState(null);
+
+    useEffect(() => {
+        try {
+            setIsLoggedIn(localStorage.getItem('isLoggedIn') === '1');
+            setAvatarUrl(localStorage.getItem('avatarUrl'));
+        } catch (_) {}
+        const onStorage = () => {
+            try {
+                setIsLoggedIn(localStorage.getItem('isLoggedIn') === '1');
+                setAvatarUrl(localStorage.getItem('avatarUrl'));
+            } catch (_) {}
+        };
+        window.addEventListener('storage', onStorage);
+        return () => window.removeEventListener('storage', onStorage);
+    }, []);
+
     return (
         <div className="fixed inset-0 w-screen h-screen overflow-hidden">
             <PreloadAssets />
@@ -141,6 +159,24 @@ export default function Home() {
                     <Link to="/testimonials" className=" text-[40px] font-black !text-[#388B4C]">TESTIMONIALS</Link>
                     <Link to="/about" className=" text-[40px] font-black !text-[#388B4C]">ABOUT</Link>
                 </nav>
+            </div>
+
+            {/* Top-right auth widget */}
+            <div className="absolute top-6 right-6 z-30">
+                {isLoggedIn ? (
+                    <Link to="/profile" className="block">
+                        <img
+                            src={avatarUrl || "/assets/logo.png"}
+                            alt="Profile"
+                            className="h-10 w-10 rounded-full border-2 border-white/80 shadow-md object-cover bg-white/10"
+                            onError={(e) => { e.currentTarget.src = "/assets/default-avatar.png"; }}
+                        />
+                    </Link>
+                ) : (
+                    <Link to="/login" className="text-sm font-bold !text-white bg-[#388B4C] px-4 py-2 rounded-full shadow-md hover:brightness-110 transition">
+                        LOGIN
+                    </Link>
+                )}
             </div>
 
             {/* Social icons centered bottom */}

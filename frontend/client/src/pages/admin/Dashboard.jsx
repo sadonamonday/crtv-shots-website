@@ -37,7 +37,7 @@ export default function AdminDashboard() {
   return (
     <AdminLayout title="Dashboard">
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 12 }}>
-        <Kpi label="Total Sales (30d)" value={`$${sales.toLocaleString()}`} sub="↑ 12% vs prev 30d" />
+        <Kpi label="Total Sales (30d)" value={`R${sales.toLocaleString()}`} sub="↑ 12% vs prev 30d" />
         <Kpi label="Orders (7d)" value={orders} sub="Including refunds" />
         <Kpi label="Bookings (7d)" value={bookings} sub="Pending + confirmed" />
         <div style={{ background: '#121212', border: '1px solid #222', borderRadius: 12, padding: 16 }}>
@@ -54,6 +54,7 @@ export default function AdminDashboard() {
             <a href="/admin/bookings" style={{ color: '#06d6a0' }}>Manage Bookings</a>
             <a href="/admin/products-services" style={{ color: '#06d6a0' }}>Products & Services</a>
             <a href="/admin/content" style={{ color: '#06d6a0' }}>Content Management</a>
+            <a href="/admin/gallery" style={{ color: '#06d6a0' }}>Gallery Manager</a>
             <a href="/admin/reviews" style={{ color: '#06d6a0' }}>Reviews & Testimonials</a>
             <a href="/admin/payments" style={{ color: '#06d6a0' }}>Payments</a>
             <a href="/admin/analytics" style={{ color: '#06d6a0' }}>Analytics</a>

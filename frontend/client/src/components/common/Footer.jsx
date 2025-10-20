@@ -9,13 +9,16 @@ const Footer = () => {
                         <h3 className="text-lg font-semibold mb-4">Quick Links</h3>
                         <ul className="space-y-2">
                             <li>
-                                <a href="#" className="text-gray-300 hover:text-white transition" data-page="shop">Shop</a>
+                                <a href="/shop" className="text-gray-300 hover:text-white transition" data-page="shop">Shop</a>
                             </li>
                             <li>
-                                <a href="#" className="text-blue-400 hover:text-white transition" data-page="bookings">Bookings</a>
+                                <a href="/bookings" className="text-blue-400 hover:text-white transition" data-page="bookings">Bookings</a>
                             </li>
                             <li>
-                                <a href="#" className="text-gray-300 hover:text-white transition" data-page="gallery">Gallery</a>
+                                <a href="/gallery" className="text-gray-300 hover:text-white transition" data-page="gallery">Gallery</a>
+                            </li>
+                            <li>
+                                <a href="/profile" className="text-gray-300 hover:text-white transition" data-page="profile">Profile</a>
                             </li>
                         </ul>
                     </div>

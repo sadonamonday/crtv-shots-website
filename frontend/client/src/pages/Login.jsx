@@ -27,6 +27,16 @@ const Login = () => {
       const data = await res.json();
 
       if (data.success) {
+        try {
+          // Mark logged-in state; store minimal user info if provided
+          localStorage.setItem("isLoggedIn", "1");
+          if (data.user) {
+            localStorage.setItem("userName", data.user.name || "");
+            if (data.user.avatarUrl) {
+              localStorage.setItem("avatarUrl", data.user.avatarUrl);
+            }
+          }
+        } catch (_) {}
         navigate("/"); // Navigate to Home.jsx
       } else {
         setError(data.message);

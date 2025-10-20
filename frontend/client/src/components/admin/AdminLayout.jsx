@@ -30,13 +30,14 @@ export default function AdminLayout({ children, title }) {
           <div style={{ width: 28, height: 28, borderRadius: 6, background: 'linear-gradient(135deg,#06d6a0,#118ab2)' }} />
           <div style={{ fontSize: 16, fontWeight: 800 }}>Admin</div>
         </div>
-        <div style={{ opacity: 0.8, fontSize: 12, marginBottom: 14 }}>WordPress‑style sidebar</div>
+        <div style={{ opacity: 0.8, fontSize: 12, marginBottom: 14 }}>sidebar</div>
         <nav style={{ display: 'grid', gap: 6 }}>
           <NavItem to="/admin" label="Dashboard" emoji="📊" />
           <NavItem to="/admin/orders" label="Orders" emoji="🧾" />
           <NavItem to="/admin/bookings" label="Bookings" emoji="🗓️" />
           <NavItem to="/admin/products-services" label="Products & Services" emoji="🧺" />
           <NavItem to="/admin/content" label="Content" emoji="📝" />
+            <NavItem to="/admin/gallery" label="Gallery" emoji="🖼️" />
           <NavItem to="/admin/reviews" label="Reviews" emoji="⭐" />
           <NavItem to="/admin/payments" label="Payments" emoji="💳" />
           <NavItem to="/admin/analytics" label="Analytics" emoji="📈" />
