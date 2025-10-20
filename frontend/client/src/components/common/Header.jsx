@@ -25,7 +25,8 @@ const Header = () => {
                             <Link to="/shop" className="nav-link text-gray-300 hover:text-white px-1 py-2 text-sm font-medium">Shop</Link>
                             <Link to="/bookings" className="nav-link text-gray-300 hover:text-white px-1 py-2 text-sm font-medium">Bookings</Link>
                             <Link to="/gallery" className="nav-link text-gray-300 hover:text-white px-1 py-2 text-sm font-medium" data-page="gallery">Gallery</Link>
-                            <a className="text-gray-300 hover:text-white px-1 py-2 text-sm font-medium">Login</a>
+                            <Link to="/profile" className="nav-link text-gray-300 hover:text-white px-1 py-2 text-sm font-medium">Profile</Link>
+                            <Link to="/login" className="nav-link text-gray-300 hover:text-white px-1 py-2 text-sm font-medium">Login</Link>
                         </div>
                     </div>
 
@@ -50,10 +51,11 @@ const Header = () => {
                     <Link to="/shop" className="text-gray-300 hover:text-white block pl-3 pr-4 py-2 text-base font-medium">Shop</Link>
                     <Link to="/bookings" className="bg-gray-700 border-blue-500 text-white block pl-3 pr-4 py-2 border-l-4 text-base font-medium">Bookings</Link>
                     <a className="text-gray-300 hover:text-white block pl-3 pr-4 py-2 text-base font-medium" data-page="gallery">Gallery</a>
+                    <Link to="/profile" className="text-gray-300 hover:text-white block pl-3 pr-4 py-2 text-base font-medium">Profile</Link>
                     <div className="pt-4 pb-3 border-t border-gray-700">
                         <div className="flex items-center px-4">
                             <div className="ml-3">
-                                <div className="text-base font-medium text-white">Login</div>
+                                <Link to="/login" className="text-base font-medium text-white">Login</Link>
                             </div>
                         </div>
                         <div className="mt-3 space-y-1">

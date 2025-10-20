@@ -1,9 +1,9 @@
 <?php
 $host = "localhost";
 $db_name = "crtvshots_db";
-$username = "CRTVSHOTS";     
-$password = "CRTV1234";    
-$port = 3306;
+$username = "root";
+$password = "Password3500";
+$port = 3307;
 
 $con = mysqli_connect($host, $username, $password, $db_name, $port);
 

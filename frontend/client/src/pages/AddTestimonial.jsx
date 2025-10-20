@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import buildApiUrl from "../utils/api";
 
 const AddTestimonial = () => {
   const [message, setMessage] = useState("");
@@ -14,7 +15,7 @@ const AddTestimonial = () => {
 
     try {
       const res = await fetch(
-        "http://localhost/finalyearproject/my-app/backend/config/api_add_testimonial.php",
+        buildApiUrl('/reviews/create.php'),
         {
           method: "POST",
           body: formData,

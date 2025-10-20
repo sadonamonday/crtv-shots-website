@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import buildApiUrl from "../../utils/api";
 
 function Guard({ children }) {
   const [loading, setLoading] = useState(true);
@@ -10,7 +11,7 @@ function Guard({ children }) {
     (async () => {
       try {
         // Try backend auth check (adjust path if you have a proxy)
-        const res = await fetch('/api/auth/me', { credentials: 'include' });
+        const res = await fetch(buildApiUrl('/auth/me.php'), { credentials: 'include' });
         if (res.ok) {
           const data = await res.json().catch(() => ({}));
           const isAdmin = Boolean(data?.isAdmin || data?.role === 'admin');
