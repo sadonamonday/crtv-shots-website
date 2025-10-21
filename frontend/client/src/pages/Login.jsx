@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import buildApiUrl from "../utils/api";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -17,7 +18,7 @@ const Login = () => {
 
     try {
       const res = await fetch(
-        "/config/login.php",
+        buildApiUrl('/config/login.php'),
         {
           method: "POST",
           body: formData,
@@ -39,10 +40,15 @@ const Login = () => {
             }
           }
         } catch (_) {}
-        navigate("/"); // Navigate to Home.jsx
-        // Email verified, proceed to 2FA
-        sessionStorage.setItem("user_email", email);
-        navigate("/Verify2FA");
+
+        if (data.two_fa) {
+          // Email verified, proceed to 2FA step
+          sessionStorage.setItem("user_email", email);
+          navigate("/Verify2FA");
+        } else {
+          // 2FA not required (disabled or already verified)
+          navigate("/");
+        }
       } else if (data.email_verified === false) {
         // Show error and allow resend
         setError(data.message || "Please verify your email first.");
@@ -60,7 +66,7 @@ const Login = () => {
       const formData = new FormData();
       formData.append("user_email", email);
       const res = await fetch(
-        "http://localhost/crtv-shots-website/backend/config/resend_verification.php",
+        buildApiUrl('/config/resend_verification.php'),
         {
           method: "POST",
           body: formData,
@@ -108,7 +114,7 @@ const Login = () => {
         <p>
           Don't have an account?{" "}
           <a
-            href="http://localhost/finalyearproject/my-app/backend/config/signup.php"
+            href={buildApiUrl('/config/signup.php')}
             className="text-[#06d6a0] hover:underline"
           >
             Sign up
@@ -116,7 +122,7 @@ const Login = () => {
         </p>
         <p className="mt-2">
           <a
-            href="http://localhost/finalyearproject/my-app/backend/config/forgot_password.php"
+            href={buildApiUrl('/config/forgot_password.php')}
             className="text-[#06d6a0] hover:underline"
           >
             Forgot Password?

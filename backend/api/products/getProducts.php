@@ -1,21 +1,9 @@
 <?php
 // Simple JSON API for products list
-// Method: GET -> returns array of { id, name/title, price, image_url }
+// Method: GET -> returns array of { id, title, price, image_url }
 
+require_once __DIR__ . '/../utils/cors.php';
 header('Content-Type: application/json; charset=utf-8');
-// Basic CORS support (adjust origin as needed)
-if (isset($_SERVER['HTTP_ORIGIN'])) {
-    header('Access-Control-Allow-Origin: ' . $_SERVER['HTTP_ORIGIN']);
-    header('Vary: Origin');
-}
-header('Access-Control-Allow-Credentials: true');
-header('Access-Control-Allow-Methods: GET, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type');
-
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    http_response_code(204);
-    exit;
-}
 
 if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
     http_response_code(405);
@@ -23,17 +11,35 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
     exit;
 }
 
-require_once __DIR__ . '/../../config/database.php';
+// Correct path to database config
+require_once __DIR__ . '/../config/database.php';
 
-// Try a few common column name variants to be resilient
-// Prefer columns: id, name, price, image_url; fallback: title, image, photo, img_url
-$sql = "SELECT 
-            id,
-            COALESCE(name, title) AS name,
-            price,
-            COALESCE(image_url, image, photo, img_url) AS image_url
-        FROM products
-        ORDER BY id DESC";
+if (!isset($con) || $con === false) {
+    http_response_code(500);
+    echo json_encode(['error' => 'Database connection failed']);
+    exit;
+}
+
+// Align with new schema: products(id, category_id, title, slug, description, price, currency, status, type, stock, created_at, updated_at)
+// and product_images(id, product_id, url, alt, sort_order, created_at)
+// We will select first image by lowest sort_order (if any)
+$sql = "
+    SELECT 
+        p.id,
+        p.title,
+        p.price,
+        pi.url AS image_url
+    FROM products p
+    LEFT JOIN (
+        SELECT product_id, MIN(sort_order) AS min_sort
+        FROM product_images
+        GROUP BY product_id
+    ) pim ON pim.product_id = p.id
+    LEFT JOIN product_images pi 
+        ON pi.product_id = pim.product_id AND pi.sort_order = pim.min_sort
+    WHERE p.status IS NULL OR p.status = 'active'
+    ORDER BY p.id DESC
+";
 
 $result = mysqli_query($con, $sql);
 if ($result === false) {
@@ -46,7 +52,7 @@ $rows = [];
 while ($row = mysqli_fetch_assoc($result)) {
     $rows[] = [
         'id' => isset($row['id']) ? (int)$row['id'] : null,
-        'name' => $row['name'] ?? '',
+        'title' => $row['title'] ?? '',
         'price' => isset($row['price']) && is_numeric($row['price']) ? (0 + $row['price']) : $row['price'],
         'image_url' => $row['image_url'] ?? null,
     ];

@@ -13,14 +13,14 @@ function Guard({ children }) {
         const res = await fetch(buildApiUrl('/auth/me.php'), { credentials: 'include' });
         if (res.ok) {
           const data = await res.json().catch(() => ({}));
-          const isAdmin = Boolean(data?.isAdmin || data?.role === 'admin');
+          const isAdmin = Boolean(data?.is_admin || data?.role === 'admin');
           if (!cancelled) setAllowed(isAdmin);
         } else {
-          const isAdminLS = localStorage.getItem('isAdmin') === 'true';
+          const isAdminLS = localStorage.getItem('is_admin') === 'true';
           if (!cancelled) setAllowed(isAdminLS);
         }
       } catch {
-        const isAdminLS = localStorage.getItem('isAdmin') === 'true';
+        const isAdminLS = localStorage.getItem('is_admin') === 'true';
         if (!cancelled) setAllowed(isAdminLS);
       } finally {
         if (!cancelled) setLoading(false);
@@ -35,7 +35,7 @@ function Guard({ children }) {
       <h2 style={{ marginTop: 0 }}>Unauthorized</h2>
       <p>You must be an admin to view this page.</p>
       <p>
-        <Link to="/login" style={{ color: '#06d6a0' }}>Go to login</Link>
+        <Link to="/admin/login" style={{ color: '#06d6a0' }}>Go to admin login</Link>
       </p>
     </div>
   );
@@ -88,8 +88,33 @@ export default function Availability() {
       return new Set();
     }
   });
+  const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   const days = useMemo(() => buildMonth(year, month), [year, month]);
+
+  // Load existing availability from backend on mount
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(buildApiUrl('/bookings/getAvailability.php'));
+        if (res.ok) {
+          const data = await res.json();
+          const dates = Array.isArray(data?.dates) ? data.dates : [];
+          if (!cancelled) setSelectedDates(new Set(dates));
+        } else {
+          // leave local values
+        }
+      } catch (e) {
+        // ignore for now
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
 
   useEffect(() => {
     localStorage.setItem('available_dates', JSON.stringify(Array.from(selectedDates)));
@@ -101,6 +126,24 @@ export default function Availability() {
       if (next.has(dateStr)) next.delete(dateStr); else next.add(dateStr);
       return next;
     });
+  };
+
+  const save = async () => {
+    setSaving(true);
+    setError('');
+    try {
+      const res = await fetch(buildApiUrl('/bookings/setAvailability.php'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ dates: Array.from(selectedDates) }),
+        credentials: 'include',
+      });
+      if (!res.ok) throw new Error('Failed to save');
+    } catch (e) {
+      setError('Failed to save availability');
+    } finally {
+      setSaving(false);
+    }
   };
 
   const changeMonth = (delta) => {
@@ -130,15 +173,28 @@ export default function Availability() {
           <button onClick={() => changeMonth(1)}>{'>'}</button>
         </div>
 
-        <div style={{ marginTop: 16, display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: 8 }}>
-          {days.map((d) => (
-            <DayButton key={d} dateStr={d} selected={selectedDates.has(d)} onToggle={toggleDate} />)
-          )}
-        </div>
+        {loading ? (
+          <div style={{ marginTop: 16 }}>Loading availability…</div>
+        ) : (
+          <>
+            <div style={{ marginTop: 16, display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: 8 }}>
+              {days.map((d) => (
+                <DayButton key={d} dateStr={d} selected={selectedDates.has(d)} onToggle={toggleDate} />)
+              )}
+            </div>
 
-        <div style={{ marginTop: 16, opacity: 0.9 }}>
-          Selected available dates: {Array.from(selectedDates).sort().join(', ') || 'None'}
-        </div>
+            <div style={{ marginTop: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <button onClick={save} disabled={saving} style={{ background: '#06d6a0', color: '#000', border: 'none', padding: '8px 12px', borderRadius: 6, cursor: 'pointer' }}>
+                {saving ? 'Saving…' : 'Save availability'}
+              </button>
+              {error && <span style={{ color: '#f88' }}>{error}</span>}
+            </div>
+
+            <div style={{ marginTop: 16, opacity: 0.9 }}>
+              Selected available dates: {Array.from(selectedDates).sort().join(', ') || 'None'}
+            </div>
+          </>
+        )}
       </div>
     </Guard>
   );

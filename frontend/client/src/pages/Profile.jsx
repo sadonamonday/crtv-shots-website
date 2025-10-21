@@ -6,7 +6,8 @@ import buildApiUrl from "../utils/api";
 // Lightweight helper to fetch JSON safely
 async function safeFetchJson(url, options = {}) {
   try {
-    const res = await fetch(url, options);
+    // Ensure cookies are sent for authenticated endpoints
+    const res = await fetch(url, { credentials: 'include', ...options });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
     return { data, error: null };

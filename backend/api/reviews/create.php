@@ -7,16 +7,16 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 // Accept form-data or JSON
-$message = isset($_POST['message']) ? trim((string)$_POST['message']) : null;
+$content = isset($_POST['message']) ? trim((string)$_POST['message']) : null; // map legacy field name to new column
 $rating = isset($_POST['rating']) ? (int)$_POST['rating'] : null;
 
-if ($message === null && $rating === null) {
+if ($content === null && $rating === null) {
     $data = json_input();
-    $message = isset($data['message']) ? trim((string)$data['message']) : '';
+    $content = isset($data['message']) ? trim((string)$data['message']) : (isset($data['content']) ? trim((string)$data['content']) : '');
     $rating = isset($data['rating']) ? (int)$data['rating'] : 0;
 }
 
-if ($message === '' || !is_int($rating) || $rating < 1 || $rating > 5) {
+if ($content === '' || !is_int($rating) || $rating < 1 || $rating > 5) {
     json_error('Please provide message and rating (1-5).', 422);
 }
 
@@ -36,13 +36,14 @@ if ($userId) {
     }
 }
 
-// Insert testimonial
-if (!($stmt = $con->prepare('INSERT INTO testimonials (name, message, rating) VALUES (?, ?, ?)'))) {
+// Insert testimonial with new column name 'content'
+if (!($stmt = $con->prepare('INSERT INTO testimonials (name, content, rating) VALUES (?, ?, ?)'))) {
     json_error('Failed to prepare statement.', 500);
 }
-$stmt->bind_param('ssi', $name, $message, $rating);
+$stmt->bind_param('ssi', $name, $content, $rating);
 if (!$stmt->execute()) {
     json_error('Failed to save testimonial.', 500);
 }
 
-json_ok(['id' => $stmt->insert_id, 'name' => $name, 'message' => $message, 'rating' => $rating], 201);
+// Respond using legacy key 'message' for compatibility while storing in 'content'
+json_ok(['id' => $stmt->insert_id, 'name' => $name, 'message' => $content, 'rating' => $rating], 201);

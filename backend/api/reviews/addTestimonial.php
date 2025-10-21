@@ -26,12 +26,13 @@ $full_name = trim($user['user_firstname'] . ' ' . $user['user_surname']);
 // Handle form submission
 $error = '';
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
-    $message = trim($_POST["message"]);
+    // Map form field 'message' to new column 'content'
+    $content = trim($_POST["message"]);
     $rating = (int)$_POST["rating"];
 
-    if (!empty($message) && $rating > 0) {
-        $stmt = $con->prepare("INSERT INTO testimonials (name, message, rating) VALUES (?, ?, ?)");
-        $stmt->bind_param("ssi", $full_name, $message, $rating);
+    if (!empty($content) && $rating > 0) {
+        $stmt = $con->prepare("INSERT INTO testimonials (name, content, rating) VALUES (?, ?, ?)");
+        $stmt->bind_param("ssi", $full_name, $content, $rating);
 
         if ($stmt->execute()) {
             header("Location: testimonials.php");

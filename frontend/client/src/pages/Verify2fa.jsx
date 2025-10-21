@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import buildApiUrl from "../utils/api";
 
 const Verify2FA = () => {
   const [code, setCode] = useState("");
@@ -27,7 +28,7 @@ const Verify2FA = () => {
 
     try {
       const res = await fetch(
-        "http://localhost/crtv-shots-website/backend/config/verify_2fa.php",
+        buildApiUrl('/config/verify_2fa.php'),
         {
           method: "POST",
           body: formData,
@@ -64,7 +65,7 @@ const Verify2FA = () => {
       formData.append("user_email", email);
 
       const res = await fetch(
-        "http://localhost/crtv-shots-website/backend/config/resend_2fa.php",
+        buildApiUrl('/config/resend_2fa.php'),
         {
           method: "POST",
           body: formData,

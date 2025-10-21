@@ -13,14 +13,14 @@ function Guard({ children }) {
         const res = await fetch(buildApiUrl('/auth/me.php'), { credentials: 'include' });
         if (res.ok) {
           const data = await res.json().catch(() => ({}));
-          const isAdmin = Boolean(data?.isAdmin || data?.role === 'admin');
+          const isAdmin = Boolean(data?.is_admin || data?.role === 'admin');
           if (!cancelled) setAllowed(isAdmin);
         } else {
-          const isAdminLS = localStorage.getItem('isAdmin') === 'true';
+          const isAdminLS = localStorage.getItem('is_admin') === 'true';
           if (!cancelled) setAllowed(isAdminLS);
         }
       } catch {
-        const isAdminLS = localStorage.getItem('isAdmin') === 'true';
+        const isAdminLS = localStorage.getItem('is_admin') === 'true';
         if (!cancelled) setAllowed(isAdminLS);
       } finally {
         if (!cancelled) setLoading(false);
@@ -35,7 +35,7 @@ function Guard({ children }) {
       <h2 style={{ marginTop: 0 }}>Unauthorized</h2>
       <p>You must be an admin to view this page.</p>
       <p>
-        <Link to="/login" style={{ color: '#06d6a0' }}>Go to login</Link>
+        <Link to="/admin/login" style={{ color: '#06d6a0' }}>Go to admin login</Link>
       </p>
     </div>
   );
@@ -64,6 +64,7 @@ export default function GalleryAdmin() {
   const [items, setItems] = useState([]);
   const [file, setFile] = useState(null);
   const [title, setTitle] = useState('');
+  const [url, setUrl] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -86,15 +87,23 @@ export default function GalleryAdmin() {
 
   const upload = async (e) => {
     e.preventDefault();
-    if (!file) return;
+    if (!file && !url) {
+      setError('Please choose a file or provide an image URL.');
+      return;
+    }
     const form = new FormData();
-    form.append('image', file);
+    if (file) form.append('image', file);
+    if (url) form.append('url', url);
     if (title) form.append('title', title);
     try {
       const res = await fetch(buildApiUrl('/gallery/upload.php'), { method: 'POST', body: form, credentials: 'include' });
-      if (!res.ok) throw new Error('Upload failed');
+      if (!res.ok) {
+        const msg = await res.text().catch(() => 'Upload failed');
+        throw new Error(msg || 'Upload failed');
+      }
       setFile(null);
       setTitle('');
+      setUrl('');
       await load();
     } catch (e) {
       setError(e?.message || 'Upload error');
@@ -140,8 +149,14 @@ export default function GalleryAdmin() {
         <form onSubmit={upload} style={{ marginTop: 16, background: '#121212', border: '1px solid #222', borderRadius: 12, padding: 16 }}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 12 }}>
             <label>
-              <div>Image</div>
-              <input type="file" accept="image/*" onChange={(e) => setFile(e.target.files?.[0] || null)} required />
+              <div>Image file</div>
+              <input type="file" accept="image/*" onChange={(e) => setFile(e.target.files?.[0] || null)} />
+              <div style={{ fontSize: 12, color: '#aaa' }}>Optional if you provide a URL</div>
+            </label>
+            <label>
+              <div>Image URL</div>
+              <input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://example.com/image.jpg (optional)" />
+              <div style={{ fontSize: 12, color: '#aaa' }}>Optional if you uploaded a file</div>
             </label>
             <label>
               <div>Title</div>
@@ -149,7 +164,7 @@ export default function GalleryAdmin() {
             </label>
           </div>
           <div style={{ marginTop: 12 }}>
-            <button type="submit">Upload</button>
+            <button type="submit">Add to gallery</button>
           </div>
         </form>
 

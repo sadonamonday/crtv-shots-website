@@ -1,27 +1,107 @@
 import React, { useEffect, useState } from "react";
 import AdminLayout from "../../components/admin/AdminLayout.jsx";
+import buildApiUrl from "../../utils/api";
 
 export default function ProductsServices() {
-  const [items, setItems] = useState(() => {
-    try { return JSON.parse(localStorage.getItem('admin_products_services')||'[]'); } catch { return []; }
-  });
+  const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [form, setForm] = useState({ id:'', type:'product', name:'', price:'', active:true });
 
-  useEffect(()=>{ localStorage.setItem('admin_products_services', JSON.stringify(items)); }, [items]);
+  // Load products and services from API
+  useEffect(() => {
+    const load = async () => {
+      try {
+        // Fetch products
+        const [resProducts, resServices] = await Promise.all([
+          fetch(buildApiUrl('/products/getProducts.php'), { credentials: 'include' }),
+          fetch(buildApiUrl('/services/getServices.php'), { credentials: 'include' }),
+        ]);
+        if (!resProducts.ok) throw new Error(`Failed to load products (${resProducts.status})`);
+        if (!resServices.ok) throw new Error(`Failed to load services (${resServices.status})`);
+        const [productsData, servicesData] = await Promise.all([resProducts.json(), resServices.json()]);
 
-  const submit = (e) => {
+        const productsMapped = (Array.isArray(productsData) ? productsData : []).map(p => ({
+          id: p.id,
+          type: 'product',
+          name: p.title || '',
+          price: p.price ?? '',
+          active: true,
+          image_url: p.image_url || ''
+        }));
+
+        const servicesMapped = (Array.isArray(servicesData) ? servicesData : []).map(s => ({
+          id: s.id,
+          type: 'service',
+          name: s.title || '',
+          price: s.price ?? '',
+          active: (s.status ?? 'active') === 'active'
+        }));
+
+        setItems([ ...servicesMapped, ...productsMapped ]);
+      } catch (e) {
+        setError(e?.message || 'Failed to load products/services');
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, []);
+
+  const submit = async (e) => {
     e.preventDefault();
     if (!form.name) return;
-    if (form.id) setItems(prev => prev.map(i => i.id===form.id ? form : i));
-    else setItems(prev => [{ ...form, id: Date.now().toString() }, ...prev]);
-    setForm({ id:'', type:'product', name:'', price:'', active:true });
+
+    try {
+      const isService = form.type === 'service';
+      if (form.id) {
+        // Update
+        const res = await fetch(buildApiUrl(isService ? '/services/updateService.php' : '/products/updateProduct.php'), {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ id: form.id, title: form.name, price: form.price, status: form.active ? 'active' : 'inactive', type: form.type })
+        });
+        if (!res.ok) throw new Error(`Update failed (${res.status})`);
+        const updated = await res.json();
+        setItems(prev => prev.map(i => i.id === form.id ? { ...i, name: updated.title ?? form.name, price: (updated.price ?? form.price), type: form.type, active: form.active } : i));
+      } else {
+        // Create
+        const res = await fetch(buildApiUrl(isService ? '/services/createService.php' : '/products/createProduct.php'), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ title: form.name, price: form.price, status: form.active ? 'active' : 'inactive', type: form.type })
+        });
+        if (!res.ok) throw new Error(`Create failed (${res.status})`);
+        const created = await res.json();
+        setItems(prev => [{ id: created.id, type: form.type, name: created.title || form.name, price: created.price || form.price, active: form.active }, ...prev]);
+      }
+      setForm({ id:'', type:'product', name:'', price:'', active:true });
+      setError(null);
+    } catch (err) {
+      setError(err?.message || 'Failed to save');
+    }
   };
 
   const edit = (i) => setForm(i);
-  const del = (id) => setItems(prev => prev.filter(i => i.id !== id));
+
+  const del = async (item) => {
+    try {
+      const isService = item.type === 'service';
+      const url = isService ? `/services/deleteService.php?id=${encodeURIComponent(item.id)}` : `/products/deleteProduct.php?id=${encodeURIComponent(item.id)}`;
+      const res = await fetch(buildApiUrl(url), { method: 'DELETE', credentials: 'include' });
+      if (!res.ok) throw new Error(`Delete failed (${res.status})`);
+      setItems(prev => prev.filter(i => i.id !== item.id));
+    } catch (err) {
+      setError(err?.message || 'Failed to delete');
+    }
+  };
 
   return (
     <AdminLayout title="Products & Services">
+      {loading && <div style={{ padding: 8 }}>Loading…</div>}
+      {error && <div style={{ padding: 8, color: '#f77' }}>{error}</div>}
       <form onSubmit={submit} style={{ background:'#121212', border:'1px solid #222', borderRadius:12, padding:16 }}>
         <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(180px,1fr))', gap:10 }}>
           <label>Type<select value={form.type} onChange={e=>setForm({...form, type:e.target.value})}>
@@ -60,7 +140,7 @@ export default function ProductsServices() {
               <td style={{ padding:8, borderBottom:'1px solid #222' }}>{i.active ? 'Yes' : 'No'}</td>
               <td style={{ padding:8, borderBottom:'1px solid #222' }}>
                 <button onClick={()=>edit(i)} style={{ marginRight:8 }}>Edit</button>
-                <button onClick={()=>del(i.id)} style={{ color:'#f55' }}>Delete</button>
+                <button onClick={()=>del(i)} style={{ color:'#f55' }}>Delete</button>
               </td>
             </tr>
           ))}</tbody>

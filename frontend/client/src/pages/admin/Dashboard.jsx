@@ -52,7 +52,8 @@ export default function AdminDashboard() {
           <div style={{ display: 'grid', gap: 8 }}>
             <a href="/admin/orders" style={{ color: '#06d6a0' }}>Manage Orders</a>
             <a href="/admin/bookings" style={{ color: '#06d6a0' }}>Manage Bookings</a>
-            <a href="/admin/products-services" style={{ color: '#06d6a0' }}>Products & Services</a>
+            <a href="/admin/products" style={{ color: '#06d6a0' }}>Products</a>
+            <a href="/admin/services" style={{ color: '#06d6a0' }}>Services</a>
             <a href="/admin/content" style={{ color: '#06d6a0' }}>Content Management</a>
             <a href="/admin/gallery" style={{ color: '#06d6a0' }}>Gallery Manager</a>
             <a href="/admin/reviews" style={{ color: '#06d6a0' }}>Reviews & Testimonials</a>
@@ -62,6 +63,33 @@ export default function AdminDashboard() {
             <a href="/admin/availability" style={{ color: '#06d6a0' }}>Availability</a>
           </div>
         </div>
+
+        {/* Visible input fields on the dashboard */}
+        <div style={{ background: '#121212', border: '1px solid #222', borderRadius: 12, padding: 16 }}>
+          <div style={{ fontWeight: 700, marginBottom: 8 }}>Quick Update</div>
+          <form onSubmit={(e) => e.preventDefault()}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 10 }}>
+              <label style={{ display: 'grid', gap: 6 }}>
+                <span style={{ fontSize: 12, opacity: 0.9 }}>Site Announcement</span>
+                <input
+                  placeholder="Enter announcement text"
+                  style={{ background: '#0f0f0f', border: '1px solid #333', color: '#fff', padding: '8px 10px', borderRadius: 6 }}
+                />
+              </label>
+              <label style={{ display: 'grid', gap: 6 }}>
+                <span style={{ fontSize: 12, opacity: 0.9 }}>Promo Code</span>
+                <input
+                  placeholder="e.g. SAVE10"
+                  style={{ background: '#0f0f0f', border: '1px solid #333', color: '#fff', padding: '8px 10px', borderRadius: 6 }}
+                />
+              </label>
+            </div>
+            <div style={{ marginTop: 10 }}>
+              <button type="submit" style={{ background: '#06d6a0', color: '#000', border: 'none', padding: '8px 12px', borderRadius: 6, cursor: 'pointer' }}>Save</button>
+            </div>
+          </form>
+        </div>
+
         <div style={{ background: '#121212', border: '1px solid #222', borderRadius: 12, padding: 16 }}>
           <div style={{ fontWeight: 700, marginBottom: 8 }}>Orders</div>
           <div style={{ opacity: 0.9, fontSize: 14 }}>Recent orders will appear here.</div>

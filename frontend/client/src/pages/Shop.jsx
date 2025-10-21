@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import Header from '../components/common/Header';
 import Footer from '../components/common/Footer';
 import ProductCard from '../components/shop/ProductCard';
@@ -54,16 +55,25 @@ const Shop = () => {
                                 {products.map((p, idx) => {
                                     const title = p?.title || p?.name || 'Untitled';
                                     const price = p?.price ?? '';
-                                    const imageSrc = p?.imageSrc || p?.image_url || p?.image || '/white image.jpeg';
-                                    const key = p?.id ?? idx;
-                                    return (
+                                    const imageSrc = p?.image_url || p?.imageSrc || p?.image || '/white image.jpeg';
+                                    const id = p?.id;
+                                    const key = id ?? `row-${idx}`;
+                                    const card = (
                                         <ProductCard
-                                            key={key}
                                             title={title}
                                             price={price}
                                             imageSrc={imageSrc}
                                             onAddToCart={() => handleAddToCart(p)}
                                         />
+                                    );
+                                    return id ? (
+                                        <Link key={key} to={`/shop/product/${id}`} className="block">
+                                            {card}
+                                        </Link>
+                                    ) : (
+                                        <div key={key} className="block">
+                                            {card}
+                                        </div>
                                     );
                                 })}
                             </div>

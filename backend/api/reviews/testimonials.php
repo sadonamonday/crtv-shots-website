@@ -1,21 +1,9 @@
 <?php
 // Simple JSON API for testimonials list
-// Method: GET -> returns array of { id, name, message, rating }
+// Method: GET -> returns array of { id, name, content, message, rating, photo_url?, created_at? }
 
+require_once __DIR__ . '/../utils/cors.php';
 header('Content-Type: application/json; charset=utf-8');
-// Basic CORS support (adjust origin as needed)
-if (isset($_SERVER['HTTP_ORIGIN'])) {
-    header('Access-Control-Allow-Origin: ' . $_SERVER['HTTP_ORIGIN']);
-    header('Vary: Origin');
-}
-header('Access-Control-Allow-Credentials: true');
-header('Access-Control-Allow-Methods: GET, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type');
-
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    http_response_code(204);
-    exit;
-}
 
 if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
     http_response_code(405);
@@ -25,8 +13,8 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
 
 require_once __DIR__ . '/../../config/database.php';
 
-// Fetch testimonials
-$sql = "SELECT id, name, message, rating FROM testimonials ORDER BY id DESC";
+// Fetch testimonials using schema columns: id, name, rating, content, photo_url, approved, created_at
+$sql = "SELECT id, name, content, rating, photo_url, created_at FROM testimonials WHERE approved = 1 ORDER BY id DESC";
 $result = mysqli_query($con, $sql);
 if ($result === false) {
     http_response_code(500);
@@ -36,11 +24,16 @@ if ($result === false) {
 
 $rows = [];
 while ($row = mysqli_fetch_assoc($result)) {
+    $content = $row['content'] ?? '';
     $rows[] = [
         'id' => isset($row['id']) ? (int)$row['id'] : null,
         'name' => $row['name'] ?? '',
-        'message' => $row['message'] ?? '',
+        // Provide both 'content' (aligns with DB) and legacy 'message' for compatibility
+        'content' => $content,
+        'message' => $content,
         'rating' => isset($row['rating']) ? (int)$row['rating'] : 0,
+        'photo_url' => $row['photo_url'] ?? null,
+        'created_at' => $row['created_at'] ?? null,
     ];
 }
 

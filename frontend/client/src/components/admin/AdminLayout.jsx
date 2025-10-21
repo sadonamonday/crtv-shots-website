@@ -1,5 +1,6 @@
-import React from "react";
-import { Link, useLocation } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import buildApiUrl from "../../utils/api.js";
 
 function NavItem({ to, label, emoji }) {
   const { pathname } = useLocation();
@@ -23,6 +24,67 @@ function NavItem({ to, label, emoji }) {
 }
 
 export default function AdminLayout({ children, title }) {
+  const navigate = useNavigate();
+  const [checking, setChecking] = useState(true);
+
+  useEffect(() => {
+    let isMounted = true;
+    const proceed = () => { if (isMounted) setChecking(false); };
+
+    // If localStorage says we're authenticated, trust it but also silently verify session
+    let hasLocal = false;
+    try { hasLocal = localStorage.getItem("admin_auth") === "true"; } catch (_) {}
+
+    const verifySession = async () => {
+      try {
+        const res = await fetch(buildApiUrl("/config/admin_check_session.php"), { credentials: "include" });
+        const data = await res.json();
+        if (data && data.success) {
+          try { localStorage.setItem("admin_auth", "true"); } catch (_) {}
+          proceed();
+        } else {
+          // In dev environments, server session cookies may not persist (SameSite/HTTPS).
+          // If we have a local admin flag, keep the user on the page and do not redirect.
+          if (hasLocal) {
+            proceed();
+          } else {
+            try { localStorage.removeItem("admin_auth"); } catch (_) {}
+            navigate("/admin/login", { replace: true });
+          }
+        }
+      } catch (e) {
+        // On network error, fall back to local flag; if none, go to login
+        if (!hasLocal) navigate("/admin/login", { replace: true });
+        proceed();
+      }
+    };
+
+    if (hasLocal) {
+      // Show immediately but verify in background
+      setChecking(false);
+      verifySession();
+    } else {
+      // No local flag, must verify with server
+      verifySession();
+    }
+
+    return () => { isMounted = false; };
+  }, [navigate]);
+
+  const handleLogout = async () => {
+    try { localStorage.removeItem("admin_auth"); } catch (_) {}
+    try { await fetch(buildApiUrl("/config/admin_logout.php"), { method: "POST", credentials: "include" }); } catch (_) {}
+    navigate("/admin/login");
+  };
+
+  if (checking) {
+    return (
+      <div style={{ minHeight: '100dvh', display: 'grid', placeItems: 'center', background: '#0b0b0b', color: '#fff' }}>
+        <div>Checking session…</div>
+      </div>
+    );
+  }
+
   return (
     <div style={{ display: 'grid', gridTemplateColumns: '240px 1fr', minHeight: '100dvh', background: '#0b0b0b', color: '#fff' }}>
       <aside style={{ borderRight: '1px solid #1e1e1e', padding: 16, background: '#111' }}>
@@ -35,7 +97,8 @@ export default function AdminLayout({ children, title }) {
           <NavItem to="/admin" label="Dashboard" emoji="📊" />
           <NavItem to="/admin/orders" label="Orders" emoji="🧾" />
           <NavItem to="/admin/bookings" label="Bookings" emoji="🗓️" />
-          <NavItem to="/admin/products-services" label="Products & Services" emoji="🧺" />
+          <NavItem to="/admin/products" label="Products" emoji="🧺" />
+          <NavItem to="/admin/services" label="Services" emoji="🛠️" />
           <NavItem to="/admin/content" label="Content" emoji="📝" />
             <NavItem to="/admin/gallery" label="Gallery" emoji="🖼️" />
           <NavItem to="/admin/reviews" label="Reviews" emoji="⭐" />
@@ -52,7 +115,7 @@ export default function AdminLayout({ children, title }) {
           <div style={{ fontWeight: 700 }}>{title || 'Admin'}</div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontSize: 13, opacity: 0.9 }}>
             <span>Logged in as Admin</span>
-            <Link to="/login" style={{ color: '#06d6a0' }}>Switch</Link>
+            <button onClick={handleLogout} style={{ color: '#06d6a0', background: 'transparent', border: 'none', cursor: 'pointer' }}>Logout</button>
           </div>
         </div>
         <div style={{ padding: 16 }}>

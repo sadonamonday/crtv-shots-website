@@ -10,19 +10,19 @@ function Guard({ children }) {
     let cancelled = false;
     (async () => {
       try {
-        // Try backend auth check (adjust path if you have a proxy)
+        // Verify authenticated admin via backend
         const res = await fetch(buildApiUrl('/auth/me.php'), { credentials: 'include' });
         if (res.ok) {
           const data = await res.json().catch(() => ({}));
-          const isAdmin = Boolean(data?.isAdmin || data?.role === 'admin');
+          const isAdmin = Boolean(data?.is_admin || data?.role === 'admin');
           if (!cancelled) setAllowed(isAdmin);
         } else {
           // Fallback to localStorage flag for dev/demo
-          const isAdminLS = localStorage.getItem('isAdmin') === 'true';
+          const isAdminLS = localStorage.getItem('is_admin') === 'true';
           if (!cancelled) setAllowed(isAdminLS);
         }
       } catch {
-        const isAdminLS = localStorage.getItem('isAdmin') === 'true';
+        const isAdminLS = localStorage.getItem('is_admin') === 'true';
         if (!cancelled) setAllowed(isAdminLS);
       } finally {
         if (!cancelled) setLoading(false);
@@ -37,7 +37,7 @@ function Guard({ children }) {
       <h2 style={{ marginTop: 0 }}>Unauthorized</h2>
       <p>You must be an admin to view this page.</p>
       <p>
-        <Link to="/login" style={{ color: '#06d6a0' }}>Go to login</Link>
+        <Link to="/admin/login" style={{ color: '#06d6a0' }}>Go to admin login</Link>
       </p>
     </div>
   );
@@ -83,28 +83,72 @@ export default function AdminBookings() {
   const [form, setForm] = useState({ id: '', customer: '', service: '', date: '', status: 'pending' });
 
   useEffect(() => {
-    // Placeholder: in the next pass we’ll fetch from backend
-    const saved = localStorage.getItem('admin_bookings');
-    if (saved) setItems(JSON.parse(saved));
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(buildApiUrl('/bookings/getBookings.php?admin=1'), { credentials: 'include' });
+        if (!res.ok) throw new Error('Failed to load bookings');
+        const data = await res.json();
+        if (!cancelled && Array.isArray(data)) setItems(data);
+      } catch (e) {
+        // keep empty on failure
+      }
+    })();
+    return () => { cancelled = true; };
   }, []);
 
-  useEffect(() => {
-    localStorage.setItem('admin_bookings', JSON.stringify(items));
-  }, [items]);
-
-  const submit = (e) => {
+  const submit = async (e) => {
     e.preventDefault();
-    if (form.id) {
-      setItems((prev) => prev.map((it) => it.id === form.id ? form : it));
-    } else {
-      const id = Date.now().toString();
-      setItems((prev) => [{ ...form, id }, ...prev]);
+    try {
+      if (form.id) {
+        await fetch(buildApiUrl('/bookings/updateBooking.php'), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            id: form.id,
+            customer: form.customer,
+            service: form.service,
+            date: form.date,
+            status: form.status,
+          }),
+          credentials: 'include',
+        });
+        setItems((prev) => prev.map((it) => it.id === form.id ? form : it));
+      } else {
+        const res = await fetch(buildApiUrl('/bookings/createBookings.php'), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: form.customer,
+            service: form.service,
+            date: form.date?.slice(0,10) || form.date,
+            time: form.date?.slice(11,16) || '',
+          }),
+          credentials: 'include',
+        });
+        const created = await res.json().catch(() => null);
+        if (created && created.id) {
+          setItems((prev) => [{ id: created.id, customer: created.name, service: created.service, date: `${created.date}${created.time ? ' ' + created.time : ''}`, status: created.status }, ...prev]);
+        }
+      }
+    } catch (err) {
+      // swallow for now
     }
     setForm({ id: '', customer: '', service: '', date: '', status: 'pending' });
   };
 
   const onEdit = (b) => setForm(b);
-  const onDelete = (id) => setItems((prev) => prev.filter((it) => it.id !== id));
+  const onDelete = async (id) => {
+    try {
+      await fetch(buildApiUrl('/bookings/cancelBooking.php'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id }),
+        credentials: 'include',
+      });
+    } catch {}
+    setItems((prev) => prev.filter((it) => it.id !== id));
+  };
 
   return (
     <Guard>

@@ -33,7 +33,12 @@ export default function Testimonials() {
                 // Expect 200 when logged in; ignore body for simplicity
                 try {
                     const me = await fetch(buildApiUrl('/auth/me.php'), { credentials: 'include' });
-                    setUserLoggedIn(me.ok);
+                    let logged = false;
+                    if (me.ok) {
+                        const body = await me.json().catch(() => ({}));
+                        logged = Boolean(body?.authenticated || body?.id);
+                    }
+                    setUserLoggedIn(logged);
                 } catch {
                     setUserLoggedIn(false);
                 }

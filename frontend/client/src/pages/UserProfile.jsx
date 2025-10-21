@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import buildApiUrl from "../utils/api";
+import { listOrders } from "../api/orders";
 
 // Component to edit one field at a time
 const EditableField = ({ label, value, email, fieldName }) => {
@@ -14,7 +16,7 @@ const EditableField = ({ label, value, email, fieldName }) => {
 
     try {
       const res = await fetch(
-        "http://localhost/crtv-shots-website/backend/config/update_user_field.php",
+        buildApiUrl('/config/update_user_field.php'),
         {
           method: "POST",
           body: JSON.stringify({ user_email: email, field: fieldName, value: fieldValue }),
@@ -107,7 +109,7 @@ const ChangePassword = ({ email }) => {
 
     try {
       const res = await fetch(
-        "http://localhost/crtv-shots-website/backend/config/change_password.php",
+        buildApiUrl('/config/change_password.php'),
         {
           method: "POST",
           body: JSON.stringify({ user_email: email, current_password: currentPwd, new_password: newPwd }),
@@ -161,6 +163,9 @@ const ChangePassword = ({ email }) => {
 
 const UserProfile = () => {
   const [user, setUser] = useState(null);
+  const [orders, setOrders] = useState([]);
+  const [ordersLoading, setOrdersLoading] = useState(false);
+  const [ordersError, setOrdersError] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -168,6 +173,21 @@ const UserProfile = () => {
     if (!storedUser) navigate("/login");
     else setUser(storedUser);
   }, [navigate]);
+
+  useEffect(() => {
+    async function loadOrders(uid) {
+      setOrdersLoading(true); setOrdersError("");
+      try {
+        const res = await listOrders(uid ? { userId: uid } : {});
+        setOrders(res.items || []);
+      } catch (e) {
+        setOrdersError(String(e.message || e));
+      } finally { setOrdersLoading(false); }
+    }
+    if (user && (user.id || user.user_id)) {
+      loadOrders(user.id || user.user_id);
+    }
+  }, [user]);
 
   const handleLogout = () => {
     sessionStorage.clear();
@@ -207,6 +227,42 @@ const UserProfile = () => {
         <EditableField label="Username" value={user.username} email={user.email} fieldName="user_username" />
         <EditableField label="Email" value={user.email} email={user.email} fieldName="user_email" />
         <EditableField label="Address" value={user.address} email={user.email} fieldName="user_address" />
+
+        {/* Orders Section */}
+        <div className="mt-8 p-4 border rounded bg-white text-black">
+          <h2 className="text-lg font-bold mb-2">My Orders</h2>
+          {ordersError && <div className="text-red-500 mb-2">{ordersError}</div>}
+          {ordersLoading ? (
+            <div>Loading orders...</div>
+          ) : (
+            <div className="overflow-x-auto">
+              {(!orders || orders.length === 0) ? (
+                <div className="text-gray-500">No orders found.</div>
+              ) : (
+                <table className="min-w-full text-sm">
+                  <thead>
+                    <tr className="bg-gray-100">
+                      <th className="text-left p-2">ID</th>
+                      <th className="text-left p-2">Total</th>
+                      <th className="text-left p-2">Status</th>
+                      <th className="text-left p-2">Created</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {orders.map(o => (
+                      <tr key={o.id} className="border-b">
+                        <td className="p-2">{o.id}</td>
+                        <td className="p-2">${o.total}</td>
+                        <td className="p-2">{o.status}</td>
+                        <td className="p-2">{o.createdAt ? new Date(o.createdAt).toLocaleString() : ''}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          )}
+        </div>
 
         {/* Change Password Section */}
         <ChangePassword email={user.email} />
