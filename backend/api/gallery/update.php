@@ -6,11 +6,6 @@ if (!in_array($_SERVER['REQUEST_METHOD'], ['PATCH', 'POST'], true)) {
     json_error('Method Not Allowed', 405);
 }
 
-// Admin guard
-$isAdmin = !empty($_SESSION['is_admin']);
-if (!$isAdmin) {
-    json_error('Forbidden', 403);
-}
 
 $payload = $_POST;
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {

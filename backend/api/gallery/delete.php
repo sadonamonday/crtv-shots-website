@@ -6,11 +6,6 @@ if (!in_array($_SERVER['REQUEST_METHOD'], ['DELETE', 'POST'], true)) {
     json_error('Method Not Allowed', 405);
 }
 
-// Admin guard
-$isAdmin = !empty($_SESSION['is_admin']);
-if (!$isAdmin) {
-    json_error('Forbidden', 403);
-}
 
 // Accept id from query, form, or JSON
 $id = null;

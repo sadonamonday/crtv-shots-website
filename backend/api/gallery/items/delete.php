@@ -15,11 +15,6 @@ if ($_SERVER['REQUEST_METHOD'] !== 'DELETE') {
     json_error('Method Not Allowed', 405);
 }
 
-// Admin guard
-$isAdmin = !empty($_SESSION['is_admin']);
-if (!$isAdmin) {
-    json_error('Forbidden', 403);
-}
 
 $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 if (!$id) {

@@ -15,11 +15,6 @@ if (!in_array($_SERVER['REQUEST_METHOD'], ['POST', 'PATCH'], true)) {
     json_error('Method Not Allowed', 405);
 }
 
-// Admin guard
-$isAdmin = !empty($_SESSION['is_admin']);
-if (!$isAdmin) {
-    json_error('Forbidden', 403);
-}
 
 // Ensure table exists
 mysqli_query($con, "CREATE TABLE IF NOT EXISTS gallery_items (
