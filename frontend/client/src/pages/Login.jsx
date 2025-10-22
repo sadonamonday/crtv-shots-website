@@ -113,12 +113,12 @@ const Login = () => {
       <div className="mt-4 text-center">
         <p>
           Don't have an account?{" "}
-          <a
-            href={buildApiUrl('/config/signup.php')}
+          <button
+            onClick={() => navigate('/signup')}
             className="text-[#06d6a0] hover:underline"
           >
             Sign up
-          </a>
+          </button>
         </p>
         <p className="mt-2">
           <a

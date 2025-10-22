@@ -9,6 +9,7 @@ import Gallery from "./pages/Gallery.jsx";
 import About from "./pages/About.jsx";
 import Testimonials from "./pages/Testimonials.jsx";
 import Login from "./pages/Login.jsx";
+import Signup from "./pages/Signup.jsx";
 import AddTestimonial from "./pages/AddTestimonial.jsx";
 import AdminDashboard from "./pages/admin/Dashboard.jsx";
 import GalleryAdmin from "./pages/admin/GalleryAdmin.jsx";
@@ -74,6 +75,7 @@ function App() {
                     <Route path="/testimonials" element={<Testimonials/>} />
                     <Route path="/add-testimonial" element={<AddTestimonial />} />
                     <Route path="/login" element={<Login />} />
+                    <Route path="/signup" element={<Signup />} />
                     <Route path="/Verify2FA" element={<Verify2FA />} />
                     <Route path="/admin" element={<AdminDashboard />} />
                     <Route path="/admin/gallery" element={<GalleryAdmin />} />

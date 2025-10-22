@@ -1,6 +1,6 @@
 // Centralized API URL builder to target the local PHP API host
 // Base host for the PHP API (can be overridden via Vite env var VITE_API_BASE)
-let API_BASE = 'http://crtvshots-api.local';
+let API_BASE = 'http://localhost:8000';
 try {
   if (import.meta && import.meta.env && import.meta.env.VITE_API_BASE) {
     API_BASE = import.meta.env.VITE_API_BASE;
