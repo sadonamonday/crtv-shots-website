@@ -8,8 +8,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
     exit;
 }
-require_once __DIR__ . '/../../utils/bootstrap.php';
-require_once __DIR__ . '/../../config/database.php';
+require_once __DIR__ . '/../utils/bootstrap.php';
+require_once __DIR__ . '/../config/database.php';
 
 
 // Ensure table exists
@@ -27,10 +27,7 @@ if ($method !== 'GET') {
     json_error('Method Not Allowed', 405);
 }
 
-// Detect admin: simple session flag
-$isAdmin = !empty($_SESSION['is_admin']);
-
-$where = $isAdmin && isset($_GET['all']) ? '1=1' : 'visible = 1';
+$where = isset($_GET['all']) ? '1=1' : 'visible = 1';
 $sql = "SELECT id, filename, COALESCE(title,'') AS title, visible, sort, created_at FROM gallery_photos WHERE $where ORDER BY sort DESC, id DESC";
 $res = mysqli_query($con, $sql);
 if ($res === false) {

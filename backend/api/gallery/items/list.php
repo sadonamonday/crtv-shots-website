@@ -30,8 +30,7 @@ mysqli_query($con, "CREATE TABLE IF NOT EXISTS gallery_items (
 
 // media table assumed to exist, but do not create here
 
-$isAdmin = !empty($_SESSION['is_admin']);
-$where = $isAdmin && isset($_GET['all']) ? '1=1' : 'gi.visible = 1';
+$where = isset($_GET['all']) ? '1=1' : 'gi.visible = 1';
 
 $sql = "SELECT gi.id, gi.media_id, COALESCE(gi.title,'') AS title, COALESCE(gi.description,'') AS description,
                gi.sort_order, gi.visible, gi.created_at,
