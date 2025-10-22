@@ -39,16 +39,19 @@ export default function AdminLayout({ children, title }) {
       try {
         const res = await fetch(buildApiUrl("/auth/me.php"), { credentials: "include" });
         const data = await res.json();
+        console.log("AdminLayout auth check:", data);
         if (data && data.authenticated && data.is_admin && data.role === 'admin') {
           try { localStorage.setItem("admin_auth", "true"); } catch (_) {}
           proceed();
         } else {
+          console.log("Admin access denied:", data);
           // User is not authenticated or not an admin
           try { localStorage.removeItem("admin_auth"); } catch (_) {}
           try { localStorage.removeItem("isLoggedIn"); } catch (_) {}
           navigate("/login", { replace: true });
         }
       } catch (e) {
+        console.error("AdminLayout auth error:", e);
         // On network error, redirect to login
         try { localStorage.removeItem("admin_auth"); } catch (_) {}
         try { localStorage.removeItem("isLoggedIn"); } catch (_) {}
@@ -93,8 +96,7 @@ export default function AdminLayout({ children, title }) {
         <div style={{ opacity: 0.8, fontSize: 12, marginBottom: 14 }}>sidebar</div>
         <nav style={{ display: 'grid', gap: 6 }}>
           <NavItem to="/admin" label="Dashboard" emoji="📊" />
-          <NavItem to="/admin/orders" label="Orders" emoji="🧾" />
-          <NavItem to="/admin/bookings" label="Bookings" emoji="🗓️" />
+          <NavItem to="/admin/bookings" label="Bookings & Orders" emoji="🗓️" />
           <NavItem to="/admin/products" label="Products" emoji="🧺" />
           <NavItem to="/admin/categories" label="Categories" emoji="🗂️" />
           <NavItem to="/admin/services" label="Services" emoji="🛠️" />

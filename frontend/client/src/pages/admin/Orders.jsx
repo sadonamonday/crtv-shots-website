@@ -18,8 +18,9 @@ export default function Orders() {
   async function load() {
     setLoading(true); setError("");
     try {
-      const res = await listOrders({ limit: 100, status: statusFilter, q });
-      setOrders(res.items || []);
+      // Admin view - show only paid orders from all users
+      const res = await listOrders({ limit: 100, status: 'paid', q, admin: '1' });
+      setOrders(res.items || res || []);
     } catch (e) { setError(String(e.message || e)); }
     finally { setLoading(false); }
   }
@@ -50,25 +51,18 @@ export default function Orders() {
 
   const exportUrl = useMemo(() => {
     const p = new URLSearchParams();
+    p.set('admin', '1'); // Always export all orders for admin
     if (statusFilter) p.set('status', statusFilter);
     if (q) p.set('q', q);
     return `/orders/exportOrders.php${p.toString() ? `?${p.toString()}` : ''}`;
   }, [statusFilter, q]);
 
   return (
-    <AdminLayout title="Orders">
+    <AdminLayout title="Paid Orders">
       {error && <div style={{ color:'#f66', marginBottom:8 }}>{error}</div>}
 
       <div style={{ display:'flex', gap:8, flexWrap:'wrap', alignItems:'center', marginBottom:12 }}>
         <input placeholder="Search by name or email" value={q} onChange={e=>setQ(e.target.value)} />
-        <select value={statusFilter} onChange={e=>setStatusFilter(e.target.value)}>
-          <option value="">All Statuses</option>
-          <option value="pending">Pending</option>
-          <option value="completed">Completed</option>
-          <option value="cancelled">Cancelled</option>
-          <option value="paid">Paid</option>
-          <option value="refunded">Refunded</option>
-        </select>
         <button onClick={load} disabled={loading}>Refresh</button>
         <a href={exportUrl}><button type="button">Export CSV</button></a>
       </div>
@@ -77,30 +71,69 @@ export default function Orders() {
         {loading ? <div>Loading...</div> : (
           <table style={{ width:'100%', borderCollapse:'collapse' }}>
             <thead><tr style={{ background:'#111' }}>
-              <th style={{ textAlign:'left', padding:8, borderBottom:'1px solid #222' }}>ID</th>
+              <th style={{ textAlign:'left', padding:8, borderBottom:'1px solid #222' }}>Order ID</th>
               <th style={{ textAlign:'left', padding:8, borderBottom:'1px solid #222' }}>Customer Name</th>
               <th style={{ textAlign:'left', padding:8, borderBottom:'1px solid #222' }}>Customer Email</th>
-              <th style={{ textAlign:'left', padding:8, borderBottom:'1px solid #222' }}>Total</th>
-              <th style={{ textAlign:'left', padding:8, borderBottom:'1px solid #222' }}>Status</th>
+              <th style={{ textAlign:'left', padding:8, borderBottom:'1px solid #222' }}>Service/Items</th>
+              <th style={{ textAlign:'left', padding:8, borderBottom:'1px solid #222' }}>Amount Paid</th>
+              <th style={{ textAlign:'left', padding:8, borderBottom:'1px solid #222' }}>Payment Type</th>
               <th style={{ textAlign:'left', padding:8, borderBottom:'1px solid #222' }}>Created</th>
-              <th style={{ textAlign:'left', padding:8, borderBottom:'1px solid #222' }}>Updated</th>
               <th style={{ textAlign:'left', padding:8, borderBottom:'1px solid #222' }}>Actions</th>
             </tr></thead>
             <tbody>
-              {orders.map(o => (
-                <tr key={o.id}>
-                  <td style={{ padding:8, borderBottom:'1px solid #222' }}>{o.id}</td>
-                  <td style={{ padding:8, borderBottom:'1px solid #222' }}>{o.customerName || o.customer_name || ''}</td>
-                  <td style={{ padding:8, borderBottom:'1px solid #222' }}>{o.customerEmail || o.customer_email || ''}</td>
-                  <td style={{ padding:8, borderBottom:'1px solid #222' }}>{formatZAR(o.total)}</td>
-                  <td style={{ padding:8, borderBottom:'1px solid #222' }}>{o.status}</td>
-                  <td style={{ padding:8, borderBottom:'1px solid #222' }}>{o.createdAt || o.created_at || ''}</td>
-                  <td style={{ padding:8, borderBottom:'1px solid #222' }}>{o.updatedAt || o.updated_at || ''}</td>
-                  <td style={{ padding:8, borderBottom:'1px solid #222' }}>
-                    <button onClick={()=>openDetails(o.id)} style={{ marginRight:8 }}>Details</button>
-                  </td>
-                </tr>
-              ))}
+              {orders.map(o => {
+                // Extract service name from items_json
+                let serviceName = 'Order';
+                let serviceAmount = 0;
+                try {
+                  if (o.items_json) {
+                    const items = JSON.parse(o.items_json);
+                    if (items && items.length > 0) {
+                      serviceName = items[0].name || items[0].title || 'Service';
+                      serviceAmount = items[0].amount || 0;
+                    }
+                  }
+                } catch (e) {
+                  console.error('Error parsing items_json:', e);
+                }
+                
+                // Determine payment type based on amount paid vs expected service amount
+                const paidAmount = o.total || 0;
+                const isDeposit = serviceAmount > 0 && paidAmount < serviceAmount && paidAmount >= (serviceAmount * 0.4);
+                const paymentType = isDeposit ? 'Deposit (50%)' : 'Full Payment';
+                const paymentTypeColor = isDeposit ? '#fbbf24' : '#4ade80';
+                
+                return (
+                  <tr key={o.id}>
+                    <td style={{ padding:8, borderBottom:'1px solid #222' }}>
+                      {o.order_id || o.id}
+                    </td>
+                    <td style={{ padding:8, borderBottom:'1px solid #222' }}>
+                      {o.customerName || o.customer_name || ''}
+                    </td>
+                    <td style={{ padding:8, borderBottom:'1px solid #222' }}>
+                      {o.customerEmail || o.customer_email || ''}
+                    </td>
+                    <td style={{ padding:8, borderBottom:'1px solid #222' }}>
+                      {serviceName}
+                    </td>
+                    <td style={{ padding:8, borderBottom:'1px solid #222' }}>
+                      {formatZAR(paidAmount)}
+                    </td>
+                    <td style={{ padding:8, borderBottom:'1px solid #222' }}>
+                      <span style={{ color: paymentTypeColor, fontWeight: 'bold' }}>
+                        {paymentType}
+                      </span>
+                    </td>
+                    <td style={{ padding:8, borderBottom:'1px solid #222' }}>
+                      {o.createdAt || o.created_at ? new Date(o.createdAt || o.created_at).toLocaleDateString() : ''}
+                    </td>
+                    <td style={{ padding:8, borderBottom:'1px solid #222' }}>
+                      <button onClick={()=>openDetails(o.id)} style={{ marginRight:8 }}>Details</button>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         )}
@@ -109,21 +142,21 @@ export default function Orders() {
       {selectedId && (
         <div style={{ marginTop:16, padding:16, border:'1px solid #222', borderRadius:12, background:'#111' }}>
           {detailsLoading ? <div>Loading details...</div> : details ? (
-            <div style={{ display:'grid', gap:12 }}>
-              <div style={{ display:'flex', gap:12, flexWrap:'wrap', alignItems:'center' }}>
-                <div><strong>Order #{details.id}</strong></div>
-                <div>Customer: {details.customerName} {details.customerEmail && `(${details.customerEmail})`}</div>
-                <div>Total: {formatZAR(details.total)}</div>
-                <div>Status:
-                  <select value={statusDraft} onChange={e=>setStatusDraft(e.target.value)} style={{ marginLeft:6 }}>
-                    <option value="pending">Pending</option>
-                    <option value="completed">Completed</option>
-                    <option value="cancelled">Cancelled</option>
-                    <option value="paid">Paid</option>
-                    <option value="refunded">Refunded</option>
-                  </select>
+              <div style={{ display:'grid', gap:12 }}>
+                <div style={{ display:'flex', gap:12, flexWrap:'wrap', alignItems:'center' }}>
+                  <div><strong>Order #{details.order_id || details.id}</strong></div>
+                  <div>Customer: {details.customerName || details.customer_name} {details.customerEmail && `(${details.customerEmail})`}</div>
+                  <div>Total: {formatZAR(details.total)}</div>
+                  <div>Status:
+                    <select value={statusDraft} onChange={e=>setStatusDraft(e.target.value)} style={{ marginLeft:6 }}>
+                      <option value="pending">Pending</option>
+                      <option value="completed">Completed</option>
+                      <option value="cancelled">Cancelled</option>
+                      <option value="paid">Paid</option>
+                      <option value="refunded">Refunded</option>
+                    </select>
+                  </div>
                 </div>
-              </div>
 
               {details.user && (
                 <div>

@@ -4,7 +4,6 @@ import Footer from "../components/common/Footer.jsx";
 import buildApiUrl from "../utils/api";
 import BookingDatePicker from "../components/BookingDatePicker.jsx";
 import { fetchAvailableDates } from "../api/availability";
-import axios from "axios";
 
 export default function BookingPage() {
   const [step, setStep] = useState(1);
@@ -182,18 +181,56 @@ const handlePay = async () => {
       paymentOption === "full" ? paymentAmounts.full : paymentAmounts.deposit
     );
 
-    const res = await await axios.post(
-  "http://localhost:8000/api/payments/payfast_initiate.php",
-  { amount: payAmount, item_name: service, item_description: "Service payment", email: "customer@example.com" },
-  { headers: { "Content-Type": "application/json" } }
-);
+    console.log('Initiating payment for amount:', payAmount);
+    console.log('Payment data:', {
+      amount: payAmount,
+      item_name: getServiceDisplayName(),
+      email: details.email,
+      customer_name: details.name
+    });
 
+    // Note: PayFast doesn't allow merchant/customer to use the same email
+    // If you're testing with admin email, it will be changed to customer@test.com
 
-    console.log(res.data); // should show redirectUrl
-    window.location.href = res.data.redirectUrl;
+    const res = await fetch(
+      "http://localhost:8000/payments/payfast_initiate.php",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ 
+          amount: payAmount, 
+          item_name: getServiceDisplayName(), 
+          item_description: "Service payment", 
+          email: details.email || "customer@example.com",
+          customer_name: details.name || "Customer",
+          customer_phone: details.phone || ""
+        })
+      }
+    );
+
+    const data = await res.json();
+
+    console.log('PayFast response:', data);
+    console.log('Response status:', res.status);
+    console.log('Response headers:', res.headers);
+    
+    if (data && data.success && data.redirectUrl) {
+      console.log('Redirecting to PayFast:', data.redirectUrl);
+      window.location.href = data.redirectUrl;
+    } else {
+      console.error('Invalid response structure:', data);
+      throw new Error(data?.error || 'No redirect URL received');
+    }
   } catch (err) {
-    console.error(err);
-    alert("Payment initialization failed");
+    console.error('Payment initialization error:', err);
+    
+    let errorMessage = "Payment initialization failed";
+    if (err.message) {
+      errorMessage = err.message;
+    }
+    
+    alert(`Payment Error: ${errorMessage}`);
   }
 };
 

@@ -32,6 +32,7 @@ const Availability = React.lazy(() => import('./pages/admin/Availability.jsx'));
 const Coupons = React.lazy(() => import('./pages/admin/Coupons.jsx'));
 import Verify2FA from "./pages/Verify2fa.jsx";
 import UserProfile from "./pages/UserProfile";
+import PaymentSuccess from "./pages/PaymentSuccess.jsx";
 
 class ErrorBoundary extends React.Component {
     constructor(props) {
@@ -96,6 +97,7 @@ function App() {
                     <Route path="/admin/promotions" element={<React.Suspense fallback={<div style={{padding:24,color:'#fff'}}>Loading…</div>}><Promotions/></React.Suspense>} />
                     <Route path="/admin/availability" element={<React.Suspense fallback={<div style={{padding:24,color:'#fff'}}>Loading…</div>}><Availability/></React.Suspense>} />
                     <Route path="/admin/coupons" element={<React.Suspense fallback={<div style={{padding:24,color:'#fff'}}>Loading…</div>}><Coupons/></React.Suspense>} />
+                    <Route path="/payment-success" element={<PaymentSuccess />} />
                 </Routes>
             </ErrorBoundary>
         </BrowserRouter>

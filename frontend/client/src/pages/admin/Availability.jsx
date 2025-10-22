@@ -90,6 +90,7 @@ export default function Availability() {
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
 
   const days = useMemo(() => buildMonth(year, month), [year, month]);
 
@@ -98,16 +99,19 @@ export default function Availability() {
     let cancelled = false;
     (async () => {
       try {
-        const res = await fetch(buildApiUrl('/bookings/getAvailability.php'));
+        const res = await fetch(buildApiUrl('/bookings/getAvailability.php'), {
+          credentials: 'include'
+        });
         if (res.ok) {
           const data = await res.json();
           const dates = Array.isArray(data?.dates) ? data.dates : [];
           if (!cancelled) setSelectedDates(new Set(dates));
+          console.log('Loaded availability dates:', dates);
         } else {
-          // leave local values
+          console.error('Failed to load availability:', res.status);
         }
       } catch (e) {
-        // ignore for now
+        console.error('Error loading availability:', e);
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -130,6 +134,7 @@ export default function Availability() {
   const save = async () => {
     setSaving(true);
     setError('');
+    setSuccess('');
     try {
       const res = await fetch(buildApiUrl('/bookings/setAvailability.php'), {
         method: 'POST',
@@ -137,9 +142,24 @@ export default function Availability() {
         body: JSON.stringify({ dates: Array.from(selectedDates) }),
         credentials: 'include',
       });
-      if (!res.ok) throw new Error('Failed to save');
+      
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Failed to save availability');
+      }
+      
+      const result = await res.json();
+      console.log('Availability saved successfully:', result);
+      
+      // Show success feedback
+      setSuccess(`Availability updated successfully! ${result.saved || selectedDates.size} dates saved.`);
+      
+      // Clear success message after 3 seconds
+      setTimeout(() => setSuccess(''), 3000);
+      
     } catch (e) {
-      setError('Failed to save availability');
+      console.error('Save availability error:', e);
+      setError(e.message || 'Failed to save availability');
     } finally {
       setSaving(false);
     }
@@ -187,6 +207,7 @@ export default function Availability() {
                 {saving ? 'Saving…' : 'Save availability'}
               </button>
               {error && <span style={{ color: '#f88' }}>{error}</span>}
+              {success && <span style={{ color: '#4ade80' }}>{success}</span>}
             </div>
 
             <div style={{ marginTop: 16, opacity: 0.9 }}>

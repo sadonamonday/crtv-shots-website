@@ -104,99 +104,177 @@ function PhotoTab() {
   );
 }
 
-function OrdersTab() {
+function OrdersBookingsTab() {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let mounted = true;
     (async () => {
-      // Try backend first
-      const { data, error } = await safeFetchJson(buildApiUrl('/orders/getOrders.php'));
-      if (!mounted) return;
-      if (data && Array.isArray(data)) {
-        setItems(data);
-      } else {
-        // Fallback demo data
-        const demo = [
-          { id: "ord_101", date: "2025-09-12", total: 1499.0, status: "paid", items: 2 },
-          { id: "ord_102", date: "2025-10-02", total: 799.0, status: "shipped", items: 1 }
-        ];
-        setItems(demo);
-      }
-      setLoading(false);
-    })();
-    return () => {
-      mounted = false;
-    };
-  }, []);
-
-  return (
-    <div>
-      <SectionHeader title="Your Orders" subtitle="Track your purchases" />
-      {loading ? (
-        <div className="text-gray-400">Loading orders…</div>
-      ) : items.length === 0 ? (
-        <div className="text-gray-400">No orders yet.</div>
-      ) : (
-        <div className="divide-y divide-gray-800 border border-gray-800 rounded-lg overflow-hidden">
-          {items.map((o) => (
-            <div key={o.id} className="p-4 flex items-center justify-between bg-gray-800">
-              <div>
-                <div className="font-medium">Order {o.id}</div>
-                <div className="text-gray-400 text-sm">{o.date} · {o.items ?? 0} item(s)</div>
-              </div>
-              <div className="text-right">
-                <div className="font-semibold">R {Number(o.total || 0).toFixed(2)}</div>
-                <div className="text-xs uppercase tracking-wide text-gray-400">{o.status || "pending"}</div>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
-function BookingsTab() {
-  const [items, setItems] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    let mounted = true;
-    (async () => {
-      const { data } = await safeFetchJson(buildApiUrl('/bookings/getBookings.php'));
-      if (!mounted) return;
-      if (data && Array.isArray(data)) setItems(data);
-      else
-        setItems([
-          { id: "bk_301", date: "2025-10-28", time: "14:00", service: "Promo Video", status: "pending" },
-          { id: "bk_302", date: "2025-11-05", time: "10:00", service: "Event Coverage", status: "confirmed" }
+      try {
+        // Fetch both orders and bookings
+        const [ordersRes, bookingsRes] = await Promise.all([
+          safeFetchJson(buildApiUrl('/orders/getOrders.php')),
+          safeFetchJson(buildApiUrl('/bookings/getBookings.php'))
         ]);
-      setLoading(false);
+
+        if (!mounted) return;
+
+        const orders = ordersRes.data && Array.isArray(ordersRes.data) ? ordersRes.data : [];
+        const bookings = bookingsRes.data && Array.isArray(bookingsRes.data) ? bookingsRes.data : [];
+
+        // Combine orders and bookings into a single array
+        const combinedItems = [];
+
+        // Add orders with type 'order'
+        orders.forEach(order => {
+          // Parse service information
+          let serviceInfo = null;
+          let serviceAmount = order.total;
+          try {
+            if (order.items_json) {
+              const items = JSON.parse(order.items_json);
+              if (items && items.length > 0) {
+                serviceInfo = items[0];
+                serviceAmount = serviceInfo.amount || order.total;
+              }
+            }
+          } catch (e) {
+            console.error('Error parsing items_json:', e);
+          }
+
+          // Determine payment status
+          const paidAmount = order.total;
+          const isDeposit = serviceAmount > 0 && paidAmount < serviceAmount && paidAmount >= (serviceAmount * 0.4);
+          const remainingAmount = Math.max(0, serviceAmount - paidAmount);
+
+          combinedItems.push({
+            ...order,
+            type: 'order',
+            id: order.order_id || order.id,
+            date: order.created_at || order.date,
+            amount: order.total,
+            service: serviceInfo?.name || 'Order',
+            payment_status: order.status,
+            service_amount: serviceAmount,
+            remaining_amount: remainingAmount,
+            is_deposit: isDeposit,
+            is_full_payment: paidAmount >= serviceAmount
+          });
+        });
+
+        // Add bookings with type 'booking'
+        bookings.forEach(booking => {
+          combinedItems.push({
+            ...booking,
+            type: 'booking',
+            id: booking.id,
+            date: booking.date,
+            amount: booking.amount || 0,
+            service: booking.service,
+            payment_status: booking.payment_option || 'pending'
+          });
+        });
+
+        // Sort by date (newest first)
+        combinedItems.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+        setItems(combinedItems);
+      } catch (error) {
+        console.error('Error fetching orders and bookings:', error);
+        setItems([]);
+      } finally {
+        setLoading(false);
+      }
     })();
     return () => {
       mounted = false;
     };
   }, []);
 
+  const formatDate = (dateString) => {
+    if (!dateString) return 'Unknown date';
+    try {
+      return new Date(dateString).toLocaleDateString('en-ZA', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      });
+    } catch {
+      return dateString;
+    }
+  };
+
+  const getStatusColor = (status, item) => {
+    if (item?.type === 'order') {
+      if (item.is_full_payment) return 'text-green-400';
+      if (item.is_deposit) return 'text-yellow-400';
+      return 'text-gray-400';
+    }
+    
+    switch (status?.toLowerCase()) {
+      case 'paid':
+      case 'confirmed':
+        return 'text-green-400';
+      case 'pending':
+        return 'text-yellow-400';
+      case 'cancelled':
+        return 'text-red-400';
+      default:
+        return 'text-gray-400';
+    }
+  };
+
   return (
     <div>
-      <SectionHeader title="Your Bookings" subtitle="Upcoming and past bookings" />
+      <SectionHeader title="Orders & Bookings" subtitle="Your orders and service bookings" />
       {loading ? (
-        <div className="text-gray-400">Loading bookings…</div>
+        <div className="text-gray-400">Loading orders and bookings…</div>
       ) : items.length === 0 ? (
-        <div className="text-gray-400">No bookings yet.</div>
+        <div className="text-gray-400">No orders or bookings yet.</div>
       ) : (
-        <div className="divide-y divide-gray-800 border border-gray-800 rounded-lg overflow-hidden">
-          {items.map((b) => (
-            <div key={b.id} className="p-4 flex items-center justify-between bg-gray-800">
-              <div>
-                <div className="font-medium">{b.service || "Booking"}</div>
-                <div className="text-gray-400 text-sm">{b.date} {b.time ? `· ${b.time}` : ""}</div>
-              </div>
-              <div className="text-right">
-                <div className="text-xs uppercase tracking-wide text-gray-400">{b.status || "pending"}</div>
+        <div className="space-y-4">
+          {items.map((item, index) => (
+            <div key={`${item.type}-${item.id}-${index}`} className="bg-gray-800 rounded-lg p-4 border border-gray-700">
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className={`px-2 py-1 rounded text-xs font-medium ${
+                      item.type === 'order' ? 'bg-blue-900 text-blue-300' : 'bg-green-900 text-green-300'
+                    }`}>
+                      {item.type === 'order' ? 'Order' : 'Booking'}
+                    </span>
+                    <span className="text-sm text-gray-400">#{item.id}</span>
+                  </div>
+                  
+                  <h3 className="font-medium text-white mb-1">
+                    {item.service || (item.type === 'order' ? 'Order' : 'Service Booking')}
+                  </h3>
+                  
+                  <div className="text-sm text-gray-400 space-y-1">
+                    <div>Date: {formatDate(item.date)}</div>
+                    {item.time && <div>Time: {item.time}</div>}
+                    {item.customer_name && <div>Customer: {item.customer_name}</div>}
+                  </div>
+                </div>
+                
+                <div className="text-right">
+                  {item.amount > 0 && (
+                    <div className="font-semibold text-lg mb-1">
+                      R {Number(item.amount).toFixed(2)}
+                      {item.is_deposit && item.remaining_amount > 0 && (
+                        <div className="text-sm text-yellow-400">
+                          (Remaining: R {item.remaining_amount.toFixed(2)})
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  <div className={`text-xs uppercase tracking-wide ${getStatusColor(item.payment_status, item)}`}>
+                    {item.type === 'order' && item.is_full_payment ? 'Paid in Full' :
+                     item.type === 'order' && item.is_deposit ? 'Deposit Paid' :
+                     item.payment_status || 'pending'}
+                  </div>
+                </div>
               </div>
             </div>
           ))}
@@ -205,12 +283,12 @@ function BookingsTab() {
     </div>
   );
 }
+
 
 export default function Profile() {
   const tabs = useMemo(() => [
     { key: "photo", label: "Profile Photo", node: <PhotoTab /> },
-    { key: "orders", label: "Orders", node: <OrdersTab /> },
-    { key: "bookings", label: "Bookings", node: <BookingsTab /> },
+    { key: "orders-bookings", label: "Orders & Bookings", node: <OrdersBookingsTab /> },
   ], []);
   const [active, setActive] = useState("photo");
 
