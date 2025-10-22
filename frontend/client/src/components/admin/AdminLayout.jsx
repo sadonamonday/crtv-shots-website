@@ -37,25 +37,22 @@ export default function AdminLayout({ children, title }) {
 
     const verifySession = async () => {
       try {
-        const res = await fetch(buildApiUrl("/config/admin_check_session.php"), { credentials: "include" });
+        const res = await fetch(buildApiUrl("/auth/me.php"), { credentials: "include" });
         const data = await res.json();
-        if (data && data.success) {
+        if (data && data.authenticated && data.is_admin && data.role === 'admin') {
           try { localStorage.setItem("admin_auth", "true"); } catch (_) {}
           proceed();
         } else {
-          // In dev environments, server session cookies may not persist (SameSite/HTTPS).
-          // If we have a local admin flag, keep the user on the page and do not redirect.
-          if (hasLocal) {
-            proceed();
-          } else {
-            try { localStorage.removeItem("admin_auth"); } catch (_) {}
-            navigate("/admin/login", { replace: true });
-          }
+          // User is not authenticated or not an admin
+          try { localStorage.removeItem("admin_auth"); } catch (_) {}
+          try { localStorage.removeItem("isLoggedIn"); } catch (_) {}
+          navigate("/login", { replace: true });
         }
       } catch (e) {
-        // On network error, fall back to local flag; if none, go to login
-        if (!hasLocal) navigate("/admin/login", { replace: true });
-        proceed();
+        // On network error, redirect to login
+        try { localStorage.removeItem("admin_auth"); } catch (_) {}
+        try { localStorage.removeItem("isLoggedIn"); } catch (_) {}
+        navigate("/login", { replace: true });
       }
     };
 
@@ -73,8 +70,9 @@ export default function AdminLayout({ children, title }) {
 
   const handleLogout = async () => {
     try { localStorage.removeItem("admin_auth"); } catch (_) {}
-    try { await fetch(buildApiUrl("/config/admin_logout.php"), { method: "POST", credentials: "include" }); } catch (_) {}
-    navigate("/admin/login");
+    try { localStorage.removeItem("isLoggedIn"); } catch (_) {}
+    try { await fetch(buildApiUrl("/config/logout.php"), { method: "POST", credentials: "include" }); } catch (_) {}
+    navigate("/login");
   };
 
   if (checking) {

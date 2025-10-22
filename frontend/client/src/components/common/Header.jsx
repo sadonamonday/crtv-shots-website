@@ -133,10 +133,6 @@ const Header = () => {
                             
                             {isLoggedIn ? (
                                 <>
-                                    <Link to="/profile" className="nav-link text-gray-300 hover:text-white px-1 py-2 text-sm font-medium">Profile</Link>
-                                    {isAdmin && (
-                                        <Link to="/admin" className="nav-link text-yellow-400 hover:text-yellow-300 px-1 py-2 text-sm font-medium">Admin Dashboard</Link>
-                                    )}
                                     <div className="relative group">
                                         <button className="flex items-center space-x-2 text-gray-300 hover:text-white px-1 py-2 text-sm font-medium">
                                             {userProfile?.avatarUrl ? (
@@ -146,20 +142,20 @@ const Header = () => {
                                                     className="h-8 w-8 rounded-full object-cover"
                                                 />
                                             ) : (
-                                                <div className="h-8 w-8 rounded-full bg-gray-600 flex items-center justify-center">
-                                                    <span className="text-xs text-white">
-                                                        {userProfile?.firstName ? userProfile.firstName[0].toUpperCase() : 'U'}
-                                                    </span>
-                                                </div>
-                                            )}
-                                            <span>{userProfile?.firstName || 'User'}</span>
+                                             <div className="h-8 w-8 rounded-full bg-gray-600 flex items-center justify-center">
+                                                 <span className="text-xs text-white">
+                                                     {userProfile?.username ? userProfile.username[0].toUpperCase() : 'U'}
+                                                 </span>
+                                             </div>
+                                         )}
+                                         <span>{userProfile?.username || 'User'}</span>
                                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                                             </svg>
                                         </button>
                                         
                                         {/* Dropdown Menu */}
-                                    <div className="absolute right-0 mt-2 w-40 bg-gray-900 rounded-md shadow-md transform scale-95 opacity-0 invisible group-hover:scale-100 group-hover:opacity-100 group-hover:visible transition-all duration-150 ease-out">
+                                    <div className="absolute right-0 mt-2 w-48 bg-gray-900 rounded-md shadow-md transform scale-95 opacity-0 invisible group-hover:scale-100 group-hover:opacity-100 group-hover:visible transition-all duration-150 ease-out">
                                         <div className="py-1">
                                             <Link 
                                                 to="/profile" 
@@ -167,6 +163,14 @@ const Header = () => {
                                             >
                                                 View Profile
                                             </Link>
+                                            {isAdmin && (
+                                                <Link 
+                                                    to="/admin" 
+                                                    className="block px-4 py-2 text-sm text-yellow-400 hover:bg-gray-800 hover:text-yellow-300 transition-colors"
+                                                >
+                                                    Admin Dashboard
+                                                </Link>
+                                            )}
                                             <button 
                                                 onClick={handleLogout}
                                                 className="block w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 hover:text-gray-200 transition-colors"
@@ -230,14 +234,14 @@ const Header = () => {
                                     ) : (
                                         <div className="h-10 w-10 rounded-full bg-gray-600 flex items-center justify-center">
                                             <span className="text-sm text-white">
-                                                {userProfile?.firstName ? userProfile.firstName[0].toUpperCase() : 'U'}
+                                                {userProfile?.username ? userProfile.username[0].toUpperCase() : 'U'}
                                             </span>
                                         </div>
                                     )}
                                 </div>
                                 <div className="ml-3">
                                     <div className="text-base font-medium text-white">
-                                        {userProfile?.firstName || 'User'}
+                                        {userProfile?.username || 'User'}
                                     </div>
                                 </div>
                             </div>
@@ -252,6 +256,9 @@ const Header = () => {
                         {isLoggedIn && (
                             <div className="mt-3 space-y-1">
                                 <Link to="/profile" className="block px-4 py-2 text-base font-medium text-gray-300 hover:text-white hover:bg-gray-700">View Profile</Link>
+                                {isAdmin && (
+                                    <Link to="/admin" className="block px-4 py-2 text-base font-medium text-yellow-400 hover:text-yellow-300 hover:bg-gray-700">Admin Dashboard</Link>
+                                )}
                                 <button 
                                     onClick={handleLogout}
                                     className="block w-full text-left px-4 py-2 text-base font-medium text-gray-300 hover:text-white hover:bg-gray-700"

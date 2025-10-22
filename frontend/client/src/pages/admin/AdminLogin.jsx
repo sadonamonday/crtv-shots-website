@@ -17,7 +17,7 @@ const AdminLogin = () => {
     formData.append("user_password", password);
 
     try {
-      const res = await fetch(buildApiUrl( "/config/admin_login.php"),
+      const res = await fetch(buildApiUrl( "/config/login.php"),
         {
           method: "POST",
           body: formData,
@@ -28,10 +28,12 @@ const AdminLogin = () => {
       const data = await res.json();
 
       if (data.success) {
+        // Mark logged-in state
+        try { localStorage.setItem("isLoggedIn", "1"); } catch (_) {}
         if (data.two_fa) {
-          // Proceed to admin 2FA verification
-          sessionStorage.setItem("admin_email", email);
-          navigate("/admin/verify-2fa");
+          // Proceed to 2FA verification
+          sessionStorage.setItem("user_email", email);
+          navigate("/Verify2FA");
         } else {
           // 2FA not required (disabled or already verified)
           try { localStorage.setItem("admin_auth", "true"); } catch (_) {}
@@ -80,8 +82,13 @@ const AdminLogin = () => {
       <div className="mt-4 text-center">
         <p>
           Don't have an admin account?{" "}
-          <Link to="/admin/signup" className="text-[#06d6a0] hover:underline">
+          <Link to="/signup" className="text-[#06d6a0] hover:underline">
             Sign up
+          </Link>
+        </p>
+        <p className="mt-2">
+          <Link to="/login" className="text-[#06d6a0] hover:underline">
+            Regular Login
           </Link>
         </p>
       </div>

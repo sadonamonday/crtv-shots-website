@@ -14,15 +14,13 @@ function Guard({ children }) {
         const res = await fetch(buildApiUrl('/auth/me.php'), { credentials: 'include' });
         if (res.ok) {
           const data = await res.json().catch(() => ({}));
-          const isAdmin = Boolean(data?.is_admin || data?.role === 'admin');
+          const isAdmin = Boolean(data?.authenticated && data?.is_admin && data?.role === 'admin');
           if (!cancelled) setAllowed(isAdmin);
         } else {
-          const isAdminLS = localStorage.getItem('is_admin') === 'true';
-          if (!cancelled) setAllowed(isAdminLS);
+          if (!cancelled) setAllowed(false);
         }
       } catch {
-        const isAdminLS = localStorage.getItem('is_admin') === 'true';
-        if (!cancelled) setAllowed(isAdminLS);
+        if (!cancelled) setAllowed(false);
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -36,7 +34,7 @@ function Guard({ children }) {
       <h2 style={{ marginTop: 0 }}>Unauthorized</h2>
       <p>You must be an admin to view this page.</p>
       <p>
-        <Link to="/admin/login" style={{ color: '#06d6a0' }}>Go to admin login</Link>
+        <Link to="/login" style={{ color: '#06d6a0' }}>Go to login</Link>
       </p>
     </div>
   );
