@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import Header from "../components/common/Header.jsx";
 import Footer from "../components/common/Footer.jsx";
 import buildApiUrl from "../utils/api";
+import axios from "axios";
 
 export default function BookingPage() {
   const [step, setStep] = useState(1);
@@ -176,6 +177,28 @@ export default function BookingPage() {
       alert('Failed to create booking. Please try again.');
     }
   };
+
+const handlePay = async () => {
+  try {
+    const payAmount = parseFloat(
+      paymentOption === "full" ? paymentAmounts.full : paymentAmounts.deposit
+    );
+
+    const res = await await axios.post(
+  "http://localhost:8000/api/payments/payfast_initiate.php",
+  { amount: payAmount, item_name: service, item_description: "Service payment", email: "customer@example.com" },
+  { headers: { "Content-Type": "application/json" } }
+);
+
+
+    console.log(res.data); // should show redirectUrl
+    window.location.href = res.data.redirectUrl;
+  } catch (err) {
+    console.error(err);
+    alert("Payment initialization failed");
+  }
+};
+
 
   
   const getServiceDisplayName = () => {
@@ -605,7 +628,7 @@ export default function BookingPage() {
                       <button 
                         type="button"
                         className="px-6 py-3 rounded bg-green-600 hover:bg-green-500 font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition"
-                        onClick={() => handlePayment(paymentOption)}
+                        onClick={handlePay}
                         disabled={!paymentOption || (service === "other" && !customService.budget)}
                       >
                         Pay Now - R{paymentOption === "full" ? paymentAmounts.full : paymentAmounts.deposit}
