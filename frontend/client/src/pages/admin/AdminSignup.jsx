@@ -30,7 +30,7 @@ const AdminSignup = () => {
 
     try {
       const res = await fetch(buildApiUrl(
-        "/config/admin_signup.php"),
+        "/Users/cash/Desktop/crtv-shots-website/backend/api/config/admin_signup.php"),
         {
           method: "POST",
           body: formData,
