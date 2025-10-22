@@ -31,4 +31,59 @@ $order = [
     'updatedAt' => $row['updated_at'] ?? null,
 ];
 
+// Attach user details if available
+if (!empty($order['userId'])) {
+    // best-effort users table read
+    $usersTblExists = mysqli_query($con, "SHOW TABLES LIKE 'users'");
+    if ($usersTblExists && mysqli_num_rows($usersTblExists) > 0) {
+        $uStmt = mysqli_prepare($con, 'SELECT id, name, email FROM users WHERE id = ?');
+        if ($uStmt) {
+            mysqli_stmt_bind_param($uStmt, 'i', $order['userId']);
+            if (mysqli_stmt_execute($uStmt)) {
+                $uRes = mysqli_stmt_get_result($uStmt);
+                $uRow = mysqli_fetch_assoc($uRes);
+                if ($uRow) {
+                    $order['user'] = [
+                        'id' => (int)$uRow['id'],
+                        'name' => $uRow['name'] ?? null,
+                        'email' => $uRow['email'] ?? null,
+                    ];
+                }
+            }
+        }
+    }
+}
+
+// Ensure and fetch payments linked to this order
+mysqli_query($con, "CREATE TABLE IF NOT EXISTS payments (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  order_id INT NOT NULL,
+  amount DECIMAL(10,2) NOT NULL DEFAULT 0,
+  provider VARCHAR(64) NULL,
+  provider_txn_id VARCHAR(128) NULL,
+  status VARCHAR(32) NOT NULL DEFAULT 'pending',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  INDEX (order_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+
+$pStmt = mysqli_prepare($con, 'SELECT id, amount, provider, provider_txn_id, status, created_at FROM payments WHERE order_id = ? ORDER BY id DESC');
+if ($pStmt) {
+    mysqli_stmt_bind_param($pStmt, 'i', $id);
+    if (mysqli_stmt_execute($pStmt)) {
+        $pRes = mysqli_stmt_get_result($pStmt);
+        $payments = [];
+        while ($pRow = mysqli_fetch_assoc($pRes)) {
+            $payments[] = [
+                'id' => (int)$pRow['id'],
+                'amount' => (float)$pRow['amount'],
+                'provider' => $pRow['provider'] ?? null,
+                'providerTxnId' => $pRow['provider_txn_id'] ?? null,
+                'status' => $pRow['status'] ?? null,
+                'createdAt' => $pRow['created_at'] ?? null,
+            ];
+        }
+        $order['payments'] = $payments;
+    }
+}
+
 json_ok($order);

@@ -20,6 +20,7 @@
     "react-dom": "^18.3.1",
     "react-hook-form": "^7.62.0",
     "react-router-dom": "^7.8.2",
+    "react-datepicker": "^4.25.0",
     "tailwindcss": "^4.1.12",
     "three": "^0.180.0"
   },

@@ -22,7 +22,7 @@ if ($customer_name === '' || $service === '' || $date === '') {
     json_error('Missing required fields: name, service, date');
 }
 
-// Optional: enforce availability if configured
+// Enforce availability: a booking is allowed only if the date is explicitly marked available by admin
 // Ensure availability table exists (no-op if already there)
 mysqli_query($con, "CREATE TABLE IF NOT EXISTS availability (
   date DATE PRIMARY KEY,
@@ -30,22 +30,18 @@ mysqli_query($con, "CREATE TABLE IF NOT EXISTS availability (
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
 
-// If there are any rows in availability, then only allow booking on dates marked available
-$hasAvailabilityCfg = false;
-if ($res = mysqli_query($con, "SELECT COUNT(*) AS c FROM availability")) {
-    $row = mysqli_fetch_assoc($res);
-    $hasAvailabilityCfg = (int)($row['c'] ?? 0) > 0;
-}
-if ($hasAvailabilityCfg) {
-    $stmtAvail = mysqli_prepare($con, "SELECT 1 FROM availability WHERE date = ? AND is_available = 1 LIMIT 1");
-    if ($stmtAvail) {
-        mysqli_stmt_bind_param($stmtAvail, 's', $date);
-        mysqli_stmt_execute($stmtAvail);
-        $r = mysqli_stmt_get_result($stmtAvail);
-        if (!$r || mysqli_num_rows($r) === 0) {
-            json_error('Selected date is not available', 409);
-        }
+// Require the selected date to be present with is_available = 1
+$stmtAvail = mysqli_prepare($con, "SELECT 1 FROM availability WHERE date = ? AND is_available = 1 LIMIT 1");
+if ($stmtAvail) {
+    mysqli_stmt_bind_param($stmtAvail, 's', $date);
+    mysqli_stmt_execute($stmtAvail);
+    $r = mysqli_stmt_get_result($stmtAvail);
+    if (!$r || mysqli_num_rows($r) === 0) {
+        json_error('Selected date is not available', 409);
     }
+} else {
+    // If preparing the statement failed for some reason, fail safe
+    json_error('Failed to validate availability');
 }
 
 // Ensure bookings table exists (idempotent)

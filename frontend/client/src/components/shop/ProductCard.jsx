@@ -1,7 +1,9 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import { formatZAR } from '../../utils/currency';
 
 const ProductCard = ({ title, price, imageSrc, ctaLabel = 'Add to Cart', onAddToCart }) => {
+    const displayPrice = formatZAR(price);
     return (
         <div className="bg-gray-800 p-4 rounded-lg">
             <img
@@ -11,7 +13,7 @@ const ProductCard = ({ title, price, imageSrc, ctaLabel = 'Add to Cart', onAddTo
             />
             <div className="mt-4">
                 <h3 className="text-white font-semibold text-lg">{title}</h3>
-                <p className="text-blue-400 font-bold mt-2">{price}</p>
+                <p className="text-blue-400 font-bold mt-2">{displayPrice}</p>
                 <button
                     className="mt-3 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded w-full"
                     onClick={onAddToCart}

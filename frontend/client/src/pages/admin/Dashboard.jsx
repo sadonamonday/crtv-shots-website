@@ -60,6 +60,7 @@ export default function AdminDashboard() {
             <a href="/admin/payments" style={{ color: '#06d6a0' }}>Payments</a>
             <a href="/admin/analytics" style={{ color: '#06d6a0' }}>Analytics</a>
             <a href="/admin/promotions" style={{ color: '#06d6a0' }}>Promotions</a>
+            <a href="/admin/coupons" style={{ color: '#06d6a0' }}>Coupons</a>
             <a href="/admin/availability" style={{ color: '#06d6a0' }}>Availability</a>
           </div>
         </div>

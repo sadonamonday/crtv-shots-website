@@ -1,80 +1,108 @@
 <?php
 // JSON API to create a service
-// Method: POST -> body JSON { title, description?, price?, status?, type? }
+// Method: POST -> body JSON { title, description?, base_price?, duration_minutes?, slug?, status? }
 
-require_once __DIR__ . '/../utils/cors.php';
-header('Content-Type: application/json; charset=utf-8');
+require_once __DIR__ . '/../utils/bootstrap.php';
+require_once __DIR__ . '/../../config/database.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    http_response_code(405);
-    echo json_encode([ 'error' => 'Method Not Allowed' ]);
-    exit;
+    json_error('Method Not Allowed', 405);
 }
-
-require_once __DIR__ . '/../../config/database.php';
 
 $createSql = "
 CREATE TABLE IF NOT EXISTS services (
   id INT AUTO_INCREMENT PRIMARY KEY,
   title VARCHAR(255) NOT NULL,
+  slug VARCHAR(255) NULL UNIQUE,
   description TEXT NULL,
-  price DECIMAL(10,2) NULL,
+  base_price DECIMAL(10,2) NULL,
+  duration_minutes INT NULL,
   status VARCHAR(20) NULL,
-  type VARCHAR(20) DEFAULT 'service',
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 ";
 mysqli_query($con, $createSql);
 
-$raw = file_get_contents('php://input');
-$body = json_decode($raw, true);
-if (!is_array($body)) $body = [];
+$body = json_input();
 
 $title = trim($body['title'] ?? '');
 $description = $body['description'] ?? null;
-$price = $body['price'] ?? null;
+$base_price = $body['base_price'] ?? null;
+$duration_minutes = isset($body['duration_minutes']) ? $body['duration_minutes'] : null;
+$slug = isset($body['slug']) ? trim((string)$body['slug']) : '';
 $status = $body['status'] ?? null;
-$type = $body['type'] ?? 'service';
 
 if ($title === '') {
-    http_response_code(400);
-    echo json_encode([ 'error' => 'Title is required' ]);
-    exit;
+    json_error('Title is required', 400);
 }
 
-// Normalize price
-if ($price !== null && $price !== '') {
-    if (!is_numeric($price)) {
-        http_response_code(400);
-        echo json_encode([ 'error' => 'Price must be numeric' ]);
-        exit;
+// Normalize base_price
+if ($base_price !== null && $base_price !== '') {
+    if (!is_numeric($base_price)) {
+        json_error('base_price must be numeric', 400);
     }
-    $price = (0 + $price);
+    $base_price = 0 + $base_price;
 } else {
-    $price = null;
+    $base_price = null;
 }
 
-$stmt = mysqli_prepare($con, "INSERT INTO services (title, description, price, status, type) VALUES (?, ?, ?, ?, ?)");
-if (!$stmt) {
-    http_response_code(500);
-    echo json_encode([ 'error' => 'Failed to prepare statement' ]);
-    exit;
+// Normalize duration
+if ($duration_minutes !== null && $duration_minutes !== '') {
+    if (!is_numeric($duration_minutes)) {
+        json_error('duration_minutes must be numeric', 400);
+    }
+    $duration_minutes = (int)$duration_minutes;
+} else {
+    $duration_minutes = null;
 }
-mysqli_stmt_bind_param($stmt, 'ssdss', $title, $description, $price, $status, $type);
+
+// Generate slug if missing
+if ($slug === '') {
+    $baseSlug = strtolower(preg_replace('/[^a-z0-9]+/i', '-', $title));
+    $baseSlug = trim($baseSlug, '-');
+} else {
+    $baseSlug = strtolower(preg_replace('/[^a-z0-9]+/i', '-', $slug));
+    $baseSlug = trim($baseSlug, '-');
+}
+
+// Ensure unique slug
+$finalSlug = $baseSlug !== '' ? $baseSlug : null;
+if ($finalSlug !== null && $finalSlug !== '') {
+    $check = mysqli_prepare($con, 'SELECT COUNT(*) AS c FROM services WHERE slug = ?');
+    mysqli_stmt_bind_param($check, 's', $finalSlug);
+    mysqli_stmt_execute($check);
+    $res = mysqli_stmt_get_result($check);
+    $count = ($row = mysqli_fetch_assoc($res)) ? (int)$row['c'] : 0;
+    $suffix = 1;
+    while ($count > 0) {
+        $try = $baseSlug . '-' . $suffix;
+        mysqli_stmt_bind_param($check, 's', $try);
+        mysqli_stmt_execute($check);
+        $res = mysqli_stmt_get_result($check);
+        $count = ($row = mysqli_fetch_assoc($res)) ? (int)$row['c'] : 0;
+        if ($count === 0) { $finalSlug = $try; break; }
+        $suffix++;
+    }
+}
+
+$stmt = mysqli_prepare($con, "INSERT INTO services (title, slug, description, base_price, duration_minutes, status) VALUES (?, ?, ?, ?, ?, ?)");
+if (!$stmt) {
+    json_error('Failed to prepare statement', 500);
+}
+mysqli_stmt_bind_param($stmt, 'sssdis', $title, $finalSlug, $description, $base_price, $duration_minutes, $status);
 $ok = mysqli_stmt_execute($stmt);
 if (!$ok) {
-    http_response_code(500);
-    echo json_encode([ 'error' => 'Failed to create service' ]);
-    exit;
+    json_error('Failed to create service', 500);
 }
 $id = mysqli_insert_id($con);
 
-echo json_encode([
+json_ok([
     'id' => (int)$id,
     'title' => $title,
+    'slug' => $finalSlug,
     'description' => $description,
-    'price' => $price,
+    'base_price' => $base_price,
+    'duration_minutes' => $duration_minutes,
     'status' => $status,
-    'type' => $type,
-]);
+], 201);

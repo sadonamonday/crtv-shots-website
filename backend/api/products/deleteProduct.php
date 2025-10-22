@@ -1,5 +1,13 @@
 <?php
-require_once __DIR__ . '/../utils/cors.php';
+header("Access-Control-Allow-Origin: http://localhost:5173");
+header("Access-Control-Allow-Credentials: true");
+header("Access-Control-Allow-Methods: GET, POST, OPTIONS, DELETE");
+header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With");
+
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit;
+}
 header('Content-Type: application/json; charset=utf-8');
 
 if ($_SERVER['REQUEST_METHOD'] !== 'DELETE') {
@@ -22,13 +30,12 @@ if ($id <= 0) {
     exit;
 }
 
-// Delete related images first (if no ON DELETE CASCADE)
-mysqli_query($con, "DELETE FROM product_images WHERE product_id=$id");
-
-if (!mysqli_query($con, "DELETE FROM products WHERE id=$id")) {
+// Archive product instead of hard deleting
+$sql = "UPDATE products SET status='inactive', updated_at=NOW() WHERE id=$id";
+if (!mysqli_query($con, $sql)) {
     http_response_code(500);
-    echo json_encode(['error' => 'Failed to delete product', 'details' => mysqli_error($con)]);
+    echo json_encode(['error' => 'Failed to archive product', 'details' => mysqli_error($con)]);
     exit;
 }
 
-echo json_encode(['success' => true, 'id' => $id]);
+echo json_encode(['success' => true, 'id' => $id, 'archived' => true]);

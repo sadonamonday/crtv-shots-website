@@ -2,7 +2,15 @@
 // Simple JSON API for testimonials list
 // Method: GET -> returns array of { id, name, content, message, rating, photo_url?, created_at? }
 
-require_once __DIR__ . '/../utils/cors.php';
+header("Access-Control-Allow-Origin: http://localhost:5173");
+header("Access-Control-Allow-Credentials: true");
+header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With");
+
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit;
+}
 header('Content-Type: application/json; charset=utf-8');
 
 if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
@@ -13,8 +21,18 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
 
 require_once __DIR__ . '/../../config/database.php';
 
-// Fetch testimonials using schema columns: id, name, rating, content, photo_url, approved, created_at
-$sql = "SELECT id, name, content, rating, photo_url, created_at FROM testimonials WHERE approved = 1 ORDER BY id DESC";
+// Optional filters: approved (default 1), rating
+$approved = isset($_GET['approved']) ? trim($_GET['approved']) : '1';
+$rating = isset($_GET['rating']) ? (int)$_GET['rating'] : 0;
+
+$conds = [];
+if ($approved !== '') { $conds[] = 'approved = ' . (($approved === '1' || strtolower($approved) === 'true') ? '1' : '0'); }
+if ($rating > 0) { $conds[] = 'rating = ' . (int)$rating; }
+
+$sql = "SELECT id, name, content, rating, photo_url, created_at FROM testimonials";
+if (!empty($conds)) { $sql .= ' WHERE ' . implode(' AND ', $conds); }
+$sql .= " ORDER BY id DESC";
+
 $result = mysqli_query($con, $sql);
 if ($result === false) {
     http_response_code(500);

@@ -34,12 +34,18 @@ function map_order_row($row) {
         'notes' => $row['notes'] ?? null,
         'createdAt' => $row['created_at'] ?? null,
         'updatedAt' => $row['updated_at'] ?? null,
+        // snake_case duplicates for admin export needs
+        'customer_name' => $row['customer_name'] ?? null,
+        'customer_email' => $row['customer_email'] ?? null,
+        'created_at' => $row['created_at'] ?? null,
+        'updated_at' => $row['updated_at'] ?? null,
     ];
 }
 
 // Filters
 $userId = isset($_GET['userId']) ? (int)$_GET['userId'] : null;
 $status = isset($_GET['status']) ? trim($_GET['status']) : null;
+$q = isset($_GET['q']) ? trim($_GET['q']) : null; // search by customer name or email
 $limit = isset($_GET['limit']) ? max(1, min(200, (int)$_GET['limit'])) : 100;
 $offset = isset($_GET['offset']) ? max(0, (int)$_GET['offset']) : 0;
 
@@ -50,6 +56,7 @@ $types = '';
 
 if ($userId) { $where[] = 'user_id = ?'; $types .= 'i'; $params[] = $userId; }
 if ($status) { $where[] = 'status = ?'; $types .= 's'; $params[] = $status; }
+if ($q !== null && $q !== '') { $where[] = '(customer_name LIKE ? OR customer_email LIKE ?)'; $types .= 'ss'; $like = '%' . $q . '%'; $params[] = $like; $params[] = $like; }
 
 if ($where) { $sql .= ' WHERE ' . implode(' AND ', $where); }
 $sql .= ' ORDER BY id DESC LIMIT ? OFFSET ?';

@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import Header from "../components/common/Header.jsx";
 import Footer from "../components/common/Footer.jsx";
 import buildApiUrl from "../utils/api";
+import BookingDatePicker from "../components/BookingDatePicker.jsx";
+import { fetchAvailableDates } from "../api/availability";
 
 export default function BookingPage() {
   const [step, setStep] = useState(1);
@@ -19,12 +21,8 @@ export default function BookingPage() {
     let cancelled = false;
     (async () => {
       try {
-        const res = await fetch(buildApiUrl('/bookings/getAvailability.php'));
-        if (res.ok) {
-          const data = await res.json();
-          const dates = Array.isArray(data?.dates) ? data.dates : [];
-          if (!cancelled) setAvailableDates(dates);
-        }
+        const dates = await fetchAvailableDates({ future: true });
+        if (!cancelled) setAvailableDates(dates);
       } catch {}
       finally {
         if (!cancelled) setLoadingAvail(false);
@@ -331,26 +329,11 @@ export default function BookingPage() {
                         <label className="block text-sm text-gray-300 mb-1">Date *</label>
                         {loadingAvail ? (
                           <div className="text-gray-400 text-sm">Loading availability…</div>
-                        ) : availableDates.length > 0 ? (
-                          <select
-                            className="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 focus:border-blue-500 focus:outline-none transition"
-                            value={date}
-                            onChange={(e) => setDate(e.target.value)}
-                            required
-                          >
-                            <option value="">Select available date</option>
-                            {availableDates.map((d) => (
-                              <option key={d} value={d}>{new Date(d).toLocaleDateString()}</option>
-                            ))}
-                          </select>
                         ) : (
-                          <input
-                            type="date"
-                            className="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 focus:border-blue-500 focus:outline-none transition"
+                          <BookingDatePicker
                             value={date}
-                            onChange={(e) => setDate(e.target.value)}
-                            min={new Date().toISOString().split('T')[0]}
-                            required
+                            onChange={setDate}
+                            availableDateStrings={availableDates}
                           />
                         )}
                       </div>

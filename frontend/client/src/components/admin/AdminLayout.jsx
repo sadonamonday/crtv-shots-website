@@ -98,6 +98,7 @@ export default function AdminLayout({ children, title }) {
           <NavItem to="/admin/orders" label="Orders" emoji="🧾" />
           <NavItem to="/admin/bookings" label="Bookings" emoji="🗓️" />
           <NavItem to="/admin/products" label="Products" emoji="🧺" />
+          <NavItem to="/admin/categories" label="Categories" emoji="🗂️" />
           <NavItem to="/admin/services" label="Services" emoji="🛠️" />
           <NavItem to="/admin/content" label="Content" emoji="📝" />
             <NavItem to="/admin/gallery" label="Gallery" emoji="🖼️" />

@@ -1,8 +1,16 @@
 <?php
-// Simple JSON API for products list
-// Method: GET -> returns array of { id, title, price, image_url }
+// Products list API with filtering and search
+// Method: GET -> returns array of { id, title, price, stock, status, category_id, image_url }
 
-require_once __DIR__ . '/../utils/cors.php';
+header("Access-Control-Allow-Origin: http://localhost:5173");
+header("Access-Control-Allow-Credentials: true");
+header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With");
+
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit;
+}
 header('Content-Type: application/json; charset=utf-8');
 
 if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
@@ -11,7 +19,6 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
     exit;
 }
 
-// Correct path to database config
 require_once __DIR__ . '/../config/database.php';
 
 if (!isset($con) || $con === false) {
@@ -20,14 +27,37 @@ if (!isset($con) || $con === false) {
     exit;
 }
 
-// Align with new schema: products(id, category_id, title, slug, description, price, currency, status, type, stock, created_at, updated_at)
-// and product_images(id, product_id, url, alt, sort_order, created_at)
-// We will select first image by lowest sort_order (if any)
+// Params: status=active|inactive|all, category_id, q (search in title or slug)
+$status = isset($_GET['status']) ? trim($_GET['status']) : 'active';
+$category_id = isset($_GET['category_id']) ? (int)$_GET['category_id'] : 0;
+$q = isset($_GET['q']) ? trim($_GET['q']) : '';
+
+$where = [];
+if ($status !== 'all') {
+    if ($status === 'inactive') {
+        $where[] = "p.status = 'inactive'";
+    } else {
+        // default active (also allow NULL treated as active)
+        $where[] = "(p.status IS NULL OR p.status = 'active')";
+    }
+}
+if ($category_id > 0) {
+    $where[] = 'p.category_id='.(int)$category_id;
+}
+if ($q !== '') {
+    $q_esc = mysqli_real_escape_string($con, $q);
+    $where[] = "(p.title LIKE '%$q_esc%' OR p.slug LIKE '%$q_esc%')";
+}
+$whereSql = empty($where) ? '' : ('WHERE ' . implode(' AND ', $where));
+
 $sql = "
     SELECT 
         p.id,
         p.title,
         p.price,
+        p.stock,
+        p.status,
+        p.category_id,
         pi.url AS image_url
     FROM products p
     LEFT JOIN (
@@ -37,7 +67,7 @@ $sql = "
     ) pim ON pim.product_id = p.id
     LEFT JOIN product_images pi 
         ON pi.product_id = pim.product_id AND pi.sort_order = pim.min_sort
-    WHERE p.status IS NULL OR p.status = 'active'
+    $whereSql
     ORDER BY p.id DESC
 ";
 
@@ -54,6 +84,9 @@ while ($row = mysqli_fetch_assoc($result)) {
         'id' => isset($row['id']) ? (int)$row['id'] : null,
         'title' => $row['title'] ?? '',
         'price' => isset($row['price']) && is_numeric($row['price']) ? (0 + $row['price']) : $row['price'],
+        'stock' => isset($row['stock']) ? (int)$row['stock'] : null,
+        'status' => $row['status'] ?? null,
+        'category_id' => isset($row['category_id']) ? (int)$row['category_id'] : null,
         'image_url' => $row['image_url'] ?? null,
     ];
 }

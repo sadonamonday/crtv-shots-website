@@ -1,4 +1,8 @@
 <?php
+header("Access-Control-Allow-Origin: http://localhost:5173");
+header("Access-Control-Allow-Credentials: true");
+header("Access-Control-Allow-Methods: GET, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With");
 require_once __DIR__ . '/../utils/bootstrap.php';
 require_once __DIR__ . '/../config/database.php';
 
@@ -22,28 +26,64 @@ mysqli_query($con, "CREATE TABLE IF NOT EXISTS bookings (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
 
+// Ensure payments table exists and has booking_id for linkage
+mysqli_query($con, "CREATE TABLE IF NOT EXISTS payments (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  order_id INT NULL,
+  booking_id INT NULL,
+  amount DECIMAL(10,2) NOT NULL DEFAULT 0,
+  provider VARCHAR(64) NULL,
+  provider_txn_id VARCHAR(128) NULL,
+  status VARCHAR(32) NOT NULL DEFAULT 'pending',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  INDEX (order_id),
+  INDEX (booking_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+// Backward-compat: add booking_id column if table already existed without it
+$colRes = mysqli_query($con, "SHOW COLUMNS FROM payments LIKE 'booking_id'");
+if ($colRes && mysqli_num_rows($colRes) === 0) {
+    @mysqli_query($con, "ALTER TABLE payments ADD COLUMN booking_id INT NULL, ADD INDEX (booking_id)");
+}
+
 $is_admin = isset($_GET['admin']) && $_GET['admin'] == '1';
 
-if ($is_admin) {
-    $sql = "SELECT id, customer_name, customer_email, customer_phone, service, date, time, notes, amount, payment_option, status, created_at FROM bookings ORDER BY created_at DESC LIMIT 200";
-    $res = mysqli_query($con, $sql);
-} else {
-    // Without user auth, return recent bookings (could be filtered by email if provided)
-    $email = isset($_GET['email']) ? trim($_GET['email']) : '';
-    if ($email !== '') {
-        $stmt = mysqli_prepare($con, "SELECT id, customer_name, customer_email, customer_phone, service, date, time, notes, amount, payment_option, status, created_at FROM bookings WHERE customer_email = ? ORDER BY created_at DESC LIMIT 100");
-        mysqli_stmt_bind_param($stmt, 's', $email);
+// Filters
+$status = isset($_GET['status']) ? trim($_GET['status']) : '';
+$email = isset($_GET['email']) ? trim($_GET['email']) : '';
+$date_from = isset($_GET['date_from']) ? trim($_GET['date_from']) : '';
+$date_to = isset($_GET['date_to']) ? trim($_GET['date_to']) : '';
+
+$conditions = [];
+$params = [];
+$types = '';
+
+if ($status !== '') { $conditions[] = 'status = ?'; $params[] = $status; $types .= 's'; }
+if ($email !== '') { $conditions[] = 'customer_email = ?'; $params[] = $email; $types .= 's'; }
+if ($date_from !== '') { $conditions[] = 'date >= ?'; $params[] = $date_from; $types .= 's'; }
+if ($date_to !== '') { $conditions[] = 'date <= ?'; $params[] = $date_to; $types .= 's'; }
+
+$limit = $is_admin ? 200 : 50;
+
+if (!empty($conditions)) {
+    $sql = 'SELECT id, customer_name, customer_email, customer_phone, service, date, time, notes, amount, payment_option, status, created_at FROM bookings WHERE ' . implode(' AND ', $conditions) . ' ORDER BY created_at DESC LIMIT ' . $limit;
+    $stmt = mysqli_prepare($con, $sql);
+    if ($stmt) {
+        mysqli_stmt_bind_param($stmt, $types, ...$params);
         mysqli_stmt_execute($stmt);
         $res = mysqli_stmt_get_result($stmt);
     } else {
-        $sql = "SELECT id, customer_name, customer_email, customer_phone, service, date, time, notes, amount, payment_option, status, created_at FROM bookings ORDER BY created_at DESC LIMIT 50";
-        $res = mysqli_query($con, $sql);
+        $res = false;
     }
+} else {
+    $sql = "SELECT id, customer_name, customer_email, customer_phone, service, date, time, notes, amount, payment_option, status, created_at FROM bookings ORDER BY created_at DESC LIMIT $limit";
+    $res = mysqli_query($con, $sql);
 }
 
 $list = [];
+$ids = [];
 if ($res) {
     while ($row = mysqli_fetch_assoc($res)) {
+        $ids[] = (int)$row['id'];
         $list[] = [
             'id' => (int)$row['id'],
             'customer' => $row['customer_name'],
@@ -57,7 +97,45 @@ if ($res) {
             'amount' => (float)$row['amount'],
             'paymentOption' => $row['payment_option'],
             'createdAt' => $row['created_at'],
+            'payments' => [],
+            'paymentsTotal' => 0.0,
         ];
+    }
+}
+
+// Attach payments per booking in bulk
+if (!empty($ids)) {
+    $in = implode(',', array_fill(0, count($ids), '?'));
+    $pTypes = str_repeat('i', count($ids));
+    $pSql = "SELECT booking_id, id, amount, provider, provider_txn_id, status, created_at FROM payments WHERE booking_id IN ($in) ORDER BY id DESC";
+    $pStmt = mysqli_prepare($con, $pSql);
+    if ($pStmt) {
+        mysqli_stmt_bind_param($pStmt, $pTypes, ...$ids);
+        if (mysqli_stmt_execute($pStmt)) {
+            $pRes = mysqli_stmt_get_result($pStmt);
+            $byBooking = [];
+            while ($p = mysqli_fetch_assoc($pRes)) {
+                $bId = (int)$p['booking_id'];
+                if (!isset($byBooking[$bId])) $byBooking[$bId] = [];
+                $byBooking[$bId][] = [
+                    'id' => (int)$p['id'],
+                    'amount' => (float)$p['amount'],
+                    'provider' => $p['provider'] ?? null,
+                    'providerTxnId' => $p['provider_txn_id'] ?? null,
+                    'status' => $p['status'] ?? null,
+                    'createdAt' => $p['created_at'] ?? null,
+                ];
+            }
+            // merge back and compute totals
+            foreach ($list as &$bk) {
+                $arr = $byBooking[$bk['id']] ?? [];
+                $bk['payments'] = $arr;
+                $total = 0.0;
+                foreach ($arr as $pp) { $total += (float)$pp['amount']; }
+                $bk['paymentsTotal'] = $total;
+            }
+            unset($bk);
+        }
     }
 }
 

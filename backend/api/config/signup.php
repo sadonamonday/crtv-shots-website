@@ -202,7 +202,7 @@ body { background: #f8f9fa; }
     </div>
 
     <div class="d-grid mt-3">
-      <button type="submit" name="signup" class="btn btn-dark">Sign Up</button>
+      <button type="submit" name="signup" class="btn btn-primary">Sign Up</button>
     </div>
 
     <p class="mt-2 text-center">Already have an account? 

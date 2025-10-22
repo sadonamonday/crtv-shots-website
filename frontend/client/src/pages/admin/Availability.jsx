@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import buildApiUrl from "../../utils/api";
+import AdminLayout from "../../components/admin/AdminLayout.jsx";
 
 function Guard({ children }) {
   const [loading, setLoading] = useState(true);
@@ -155,7 +156,7 @@ export default function Availability() {
   };
 
   return (
-    <Guard>
+    <AdminLayout title="Availability">
       <div style={{ padding: 24, color: '#fff' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
           <h1 style={{ margin: 0 }}>Availability</h1>
@@ -196,6 +197,6 @@ export default function Availability() {
           </>
         )}
       </div>
-    </Guard>
+    </AdminLayout>
   );
 }

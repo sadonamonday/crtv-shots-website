@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import AdminLayout from "../../components/admin/AdminLayout.jsx";
 import buildApiUrl from "../../utils/api";
+import { formatZAR } from "../../utils/currency";
 
 export default function ProductsServices() {
   const [items, setItems] = useState([]);
@@ -109,7 +110,7 @@ export default function ProductsServices() {
             <option value="service">Service</option>
           </select></label>
           <label>Name<input value={form.name} onChange={e=>setForm({...form, name:e.target.value})} required /></label>
-          <label>Price ($)<input type="number" step="0.01" value={form.price} onChange={e=>setForm({...form, price:e.target.value})} /></label>
+          <label>Price (R)<input type="number" step="0.01" value={form.price} onChange={e=>setForm({...form, price:e.target.value})} /></label>
           <label>Active<select value={String(form.active)} onChange={e=>setForm({...form, active: e.target.value==='true'})}>
             <option value="true">Yes</option>
             <option value="false">No</option>
@@ -136,7 +137,7 @@ export default function ProductsServices() {
               <td style={{ padding:8, borderBottom:'1px solid #222' }}>{i.id}</td>
               <td style={{ padding:8, borderBottom:'1px solid #222' }}>{i.type}</td>
               <td style={{ padding:8, borderBottom:'1px solid #222' }}>{i.name}</td>
-              <td style={{ padding:8, borderBottom:'1px solid #222' }}>${i.price}</td>
+              <td style={{ padding:8, borderBottom:'1px solid #222' }}>{formatZAR(i.price)}</td>
               <td style={{ padding:8, borderBottom:'1px solid #222' }}>{i.active ? 'Yes' : 'No'}</td>
               <td style={{ padding:8, borderBottom:'1px solid #222' }}>
                 <button onClick={()=>edit(i)} style={{ marginRight:8 }}>Edit</button>

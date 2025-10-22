@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import AdminLayout from "../../components/admin/AdminLayout.jsx";
+import { formatZAR } from "../../utils/currency";
 
 export default function Payments() {
   const [items, setItems] = useState(() => {
@@ -30,7 +31,7 @@ export default function Payments() {
             <option value="paypal">PayPal</option>
             <option value="bank">Bank</option>
           </select></label>
-          <label>Amount ($)<input type="number" step="0.01" value={form.amount} onChange={e=>setForm({...form, amount:e.target.value})} required /></label>
+          <label>Amount (R)<input type="number" step="0.01" value={form.amount} onChange={e=>setForm({...form, amount:e.target.value})} required /></label>
           <label>Status<select value={form.status} onChange={e=>setForm({...form, status:e.target.value})}>
             <option value="initiated">Initiated</option>
             <option value="paid">Paid</option>
@@ -59,7 +60,7 @@ export default function Payments() {
               <td style={{ padding:8, borderBottom:'1px solid #222' }}>{i.id}</td>
               <td style={{ padding:8, borderBottom:'1px solid #222' }}>{i.orderId}</td>
               <td style={{ padding:8, borderBottom:'1px solid #222' }}>{i.method}</td>
-              <td style={{ padding:8, borderBottom:'1px solid #222' }}>${i.amount}</td>
+              <td style={{ padding:8, borderBottom:'1px solid #222' }}>{formatZAR(i.amount)}</td>
               <td style={{ padding:8, borderBottom:'1px solid #222' }}>{i.status}</td>
               <td style={{ padding:8, borderBottom:'1px solid #222' }}>
                 <button onClick={()=>edit(i)} style={{ marginRight:8 }}>Edit</button>

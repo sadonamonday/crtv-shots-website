@@ -1,5 +1,13 @@
 <?php
-require_once __DIR__ . '/../utils/cors.php';
+header("Access-Control-Allow-Origin: http://localhost:5173");
+header("Access-Control-Allow-Credentials: true");
+header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With");
+
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit;
+}
 header('Content-Type: application/json; charset=utf-8');
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -8,7 +16,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
-require_once __DIR__ . '/../../config/database.php';
+require_once __DIR__ . '/../config/database.php';
 
 $input = json_decode(file_get_contents('php://input'), true);
 if (!is_array($input)) { $input = $_POST; }
@@ -17,7 +25,7 @@ $title = trim($input['title'] ?? '');
 $price = $input['price'] ?? null;
 $description = trim($input['description'] ?? '');
 $slug = trim($input['slug'] ?? '');
-$currency = $input['currency'] ?? 'USD';
+$currency = $input['currency'] ?? 'ZAR';
 $status = $input['status'] ?? 'active';
 $type = $input['type'] ?? 'product';
 $stock = isset($input['stock']) ? (int)$input['stock'] : 0;

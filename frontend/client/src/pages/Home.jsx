@@ -144,7 +144,7 @@ export default function Home() {
             <PreloadAssets />
             {/* Overlay UI (logo, vertical nav, social icons) rendered by React normally */}
             <div className="absolute top-9 left-9 z-20 flex flex-col items-start gap-6 ">
-                <img src="/assets/logo.png" alt="logo" className="w-16 h-auto mb-2" />
+                <img src="/assets/logo.png" alt="logo" className="w-30 h-auto mb-2 " />
                 <nav className="flex flex-col gap-4 font-sans font-black tracking-wide ">
                     <Link
                         to="/videos"

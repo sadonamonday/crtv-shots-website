@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import buildApiUrl from "../../utils/api";
+import AdminLayout from "../../components/admin/AdminLayout.jsx";
 
 function Guard({ children }) {
   const [loading, setLoading] = useState(true);
@@ -54,6 +55,8 @@ function Table({ items, onEdit, onDelete }) {
             <th style={{ textAlign: 'left', padding: 8, borderBottom: '1px solid #222' }}>Customer</th>
             <th style={{ textAlign: 'left', padding: 8, borderBottom: '1px solid #222' }}>Service</th>
             <th style={{ textAlign: 'left', padding: 8, borderBottom: '1px solid #222' }}>Date</th>
+            <th style={{ textAlign: 'left', padding: 8, borderBottom: '1px solid #222' }}>Amount</th>
+            <th style={{ textAlign: 'left', padding: 8, borderBottom: '1px solid #222' }}>Paid</th>
             <th style={{ textAlign: 'left', padding: 8, borderBottom: '1px solid #222' }}>Status</th>
             <th style={{ textAlign: 'left', padding: 8, borderBottom: '1px solid #222' }}>Actions</th>
           </tr>
@@ -64,7 +67,9 @@ function Table({ items, onEdit, onDelete }) {
               <td style={{ padding: 8, borderBottom: '1px solid #222' }}>{b.id}</td>
               <td style={{ padding: 8, borderBottom: '1px solid #222' }}>{b.customer}</td>
               <td style={{ padding: 8, borderBottom: '1px solid #222' }}>{b.service}</td>
-              <td style={{ padding: 8, borderBottom: '1px solid #222' }}>{b.date}</td>
+              <td style={{ padding: 8, borderBottom: '1px solid #222' }}>{b.date}{b.time ? ` ${b.time}` : ''}</td>
+              <td style={{ padding: 8, borderBottom: '1px solid #222' }}>{typeof b.amount === 'number' ? `R${b.amount.toFixed(2)}` : ''}</td>
+              <td style={{ padding: 8, borderBottom: '1px solid #222' }}>{typeof b.paymentsTotal === 'number' ? `R${b.paymentsTotal.toFixed(2)}` : 'R0.00'}</td>
               <td style={{ padding: 8, borderBottom: '1px solid #222' }}>{b.status}</td>
               <td style={{ padding: 8, borderBottom: '1px solid #222' }}>
                 <button onClick={() => onEdit(b)} style={{ marginRight: 8 }}>Edit</button>
@@ -81,15 +86,27 @@ function Table({ items, onEdit, onDelete }) {
 export default function AdminBookings() {
   const [items, setItems] = useState([]);
   const [form, setForm] = useState({ id: '', customer: '', service: '', date: '', status: 'pending' });
+  const [filters, setFilters] = useState({ status: '', email: '', date_from: '', date_to: '' });
+
+  const load = async (f = filters) => {
+    const params = new URLSearchParams();
+    params.set('admin', '1');
+    if (f.status) params.set('status', f.status);
+    if (f.email) params.set('email', f.email);
+    if (f.date_from) params.set('date_from', f.date_from);
+    if (f.date_to) params.set('date_to', f.date_to);
+    const url = buildApiUrl(`/bookings/getBookings.php?${params.toString()}`);
+    const res = await fetch(url, { credentials: 'include' });
+    if (!res.ok) throw new Error('Failed to load bookings');
+    const data = await res.json();
+    if (Array.isArray(data)) setItems(data);
+  };
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
       try {
-        const res = await fetch(buildApiUrl('/bookings/getBookings.php?admin=1'), { credentials: 'include' });
-        if (!res.ok) throw new Error('Failed to load bookings');
-        const data = await res.json();
-        if (!cancelled && Array.isArray(data)) setItems(data);
+        await load();
       } catch (e) {
         // keep empty on failure
       }
@@ -151,7 +168,7 @@ export default function AdminBookings() {
   };
 
   return (
-    <Guard>
+    <AdminLayout title="Bookings">
       <div style={{ padding: 24, color: '#fff' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
           <h1 style={{ margin: 0 }}>Bookings</h1>
@@ -160,6 +177,38 @@ export default function AdminBookings() {
             <Link to="/admin/availability" style={{ color: '#06d6a0' }}>Availability</Link>
           </div>
         </div>
+
+        {/* Filters */}
+        <form onSubmit={(e)=>{e.preventDefault(); load(filters);}} style={{ marginTop: 16, background: '#101010', border: '1px solid #222', borderRadius: 12, padding: 16 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 12 }}>
+            <label>
+              <div>Status</div>
+              <select value={filters.status} onChange={(e)=>setFilters({ ...filters, status: e.target.value })}>
+                <option value="">Any</option>
+                <option value="pending">Pending</option>
+                <option value="confirmed">Confirmed</option>
+                <option value="completed">Completed</option>
+                <option value="cancelled">Cancelled</option>
+              </select>
+            </label>
+            <label>
+              <div>Customer Email</div>
+              <input type="email" placeholder="email@example.com" value={filters.email} onChange={(e)=>setFilters({ ...filters, email: e.target.value })} />
+            </label>
+            <label>
+              <div>Date from</div>
+              <input type="date" value={filters.date_from} onChange={(e)=>setFilters({ ...filters, date_from: e.target.value })} />
+            </label>
+            <label>
+              <div>Date to</div>
+              <input type="date" value={filters.date_to} onChange={(e)=>setFilters({ ...filters, date_to: e.target.value })} />
+            </label>
+          </div>
+          <div style={{ marginTop: 12 }}>
+            <button type="submit" style={{ marginRight: 8 }}>Apply Filters</button>
+            <button type="button" onClick={()=>{ setFilters({ status:'', email:'', date_from:'', date_to:''}); load({ status:'', email:'', date_from:'', date_to:''}); }}>Reset</button>
+          </div>
+        </form>
 
         <form onSubmit={submit} style={{ marginTop: 16, background: '#121212', border: '1px solid #222', borderRadius: 12, padding: 16 }}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 12 }}>
@@ -197,6 +246,6 @@ export default function AdminBookings() {
           <Table items={items} onEdit={onEdit} onDelete={onDelete} />
         </div>
       </div>
-    </Guard>
+    </AdminLayout>
   );
 }

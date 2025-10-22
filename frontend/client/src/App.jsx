@@ -21,12 +21,14 @@ const Orders = React.lazy(() => import('./pages/admin/Orders.jsx'));
 const Bookings = React.lazy(() => import('./pages/admin/Bookings.jsx'));
 const Products = React.lazy(() => import('./pages/admin/Products.jsx'));
 const Services = React.lazy(() => import('./pages/admin/Services.jsx'));
+const Categories = React.lazy(() => import('./pages/admin/Categories.jsx'));
 const Content = React.lazy(() => import('./pages/admin/Content.jsx'));
 const Reviews = React.lazy(() => import('./pages/admin/Reviews.jsx'));
 const Payments = React.lazy(() => import('./pages/admin/Payments.jsx'));
 const Analytics = React.lazy(() => import('./pages/admin/Analytics.jsx'));
 const Promotions = React.lazy(() => import('./pages/admin/Promotions.jsx'));
 const Availability = React.lazy(() => import('./pages/admin/Availability.jsx'));
+const Coupons = React.lazy(() => import('./pages/admin/Coupons.jsx'));
 import Verify2FA from "./pages/Verify2fa.jsx";
 import UserProfile from "./pages/UserProfile";
 
@@ -83,6 +85,7 @@ function App() {
                     <Route path="/admin/bookings" element={<React.Suspense fallback={<div style={{padding:24,color:'#fff'}}>Loading…</div>}><Bookings/></React.Suspense>} />
                     <Route path="/admin/products" element={<React.Suspense fallback={<div style={{padding:24,color:'#fff'}}>Loading…</div>}><Products/></React.Suspense>} />
                     <Route path="/admin/services" element={<React.Suspense fallback={<div style={{padding:24,color:'#fff'}}>Loading…</div>}><Services/></React.Suspense>} />
+                    <Route path="/admin/categories" element={<React.Suspense fallback={<div style={{padding:24,color:'#fff'}}>Loading…</div>}><Categories/></React.Suspense>} />
                     <Route path="/admin/products-services" element={<Navigate to="/admin/products" replace />} />
                     <Route path="/admin/content" element={<React.Suspense fallback={<div style={{padding:24,color:'#fff'}}>Loading…</div>}><Content/></React.Suspense>} />
                     <Route path="/admin/reviews" element={<React.Suspense fallback={<div style={{padding:24,color:'#fff'}}>Loading…</div>}><Reviews/></React.Suspense>} />
@@ -90,6 +93,7 @@ function App() {
                     <Route path="/admin/analytics" element={<React.Suspense fallback={<div style={{padding:24,color:'#fff'}}>Loading…</div>}><Analytics/></React.Suspense>} />
                     <Route path="/admin/promotions" element={<React.Suspense fallback={<div style={{padding:24,color:'#fff'}}>Loading…</div>}><Promotions/></React.Suspense>} />
                     <Route path="/admin/availability" element={<React.Suspense fallback={<div style={{padding:24,color:'#fff'}}>Loading…</div>}><Availability/></React.Suspense>} />
+                    <Route path="/admin/coupons" element={<React.Suspense fallback={<div style={{padding:24,color:'#fff'}}>Loading…</div>}><Coupons/></React.Suspense>} />
                 </Routes>
             </ErrorBoundary>
         </BrowserRouter>

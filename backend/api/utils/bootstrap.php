@@ -1,18 +1,12 @@
 <?php
-// Common bootstrap: CORS and JSON helpers
-// Use centralized session bootstrap to ensure consistent cookie name and SameSite settings
 require_once __DIR__ . '/session.php';
-
-// Ensure session is started (redundant guard in case this file is used without session.php changes)
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
-
 // JSON APIs default to application/json
 header('Content-Type: application/json; charset=utf-8');
 
 // Centralized CORS
-require_once __DIR__ . '/cors.php';
 
 function json_input(): array {
     $input = file_get_contents('php://input');

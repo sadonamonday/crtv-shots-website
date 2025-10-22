@@ -11,6 +11,19 @@ const Gallery = () => {
     let cancelled = false;
     (async () => {
       try {
+        // Prefer gallery items (with media details)
+        const resItems = await fetch(buildApiUrl('/gallery/items/list.php'), { credentials: 'include' });
+        if (resItems.ok) {
+          const items = await resItems.json();
+          const urls = Array.isArray(items)
+            ? items.map(it => it?.media?.url).filter(Boolean)
+            : [];
+          if (!cancelled && urls.length > 0) {
+            setImages(urls);
+            return;
+          }
+        }
+        // Fallback to photos list
         const res = await fetch(buildApiUrl('/gallery/list.php'), { credentials: 'include' });
         if (!res.ok) throw new Error('Failed to load gallery');
         const data = await res.json();

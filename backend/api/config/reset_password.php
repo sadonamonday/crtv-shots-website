@@ -92,7 +92,7 @@ if (isset($_POST['reset_password']) && isset($_GET['token'])) {
         </div>
 
         <div class="d-grid">
-            <input type="submit" name="reset_password" value="Reset Password" class="btn btn-dark">
+            <input type="submit" name="reset_password" value="Reset Password" class="btn btn-primary">
         </div>
     </form>
     <?php endif; ?>

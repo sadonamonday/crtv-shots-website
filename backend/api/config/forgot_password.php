@@ -95,7 +95,7 @@ if (isset($_POST['forgot_password'])) {
             <input type="email" name="user_email" class="form-control" placeholder="Enter Gmail" required value="<?php echo $email_val; ?>">
         </div>
         <div class="d-grid mt-3">
-            <input type="submit" name="forgot_password" class="btn btn-dark" value="Send Reset Link">
+            <input type="submit" name="forgot_password" class="btn btn-primary" value="Send Reset Link">
         </div>
     </form>
     <p class="text-center mt-3">

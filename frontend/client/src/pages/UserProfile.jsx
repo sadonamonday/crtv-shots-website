@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import buildApiUrl from "../utils/api";
 import { listOrders } from "../api/orders";
+import { formatZAR } from "../utils/currency";
 
 // Component to edit one field at a time
 const EditableField = ({ label, value, email, fieldName }) => {
