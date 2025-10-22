@@ -205,8 +205,8 @@ body { background: #f8f9fa; }
       <button type="submit" name="signup" class="btn btn-primary">Sign Up</button>
     </div>
 
-    <p class="mt-2 text-center">Already have an account? 
-      <a href="http://localhost:5174/login" class="text-danger">Login</a>
+        <p class="mt-2 text-center">Already have an account? 
+      <a href="http://localhost:5173/login" class="text-danger">Login</a>
     </p>
   </form>
 </div>

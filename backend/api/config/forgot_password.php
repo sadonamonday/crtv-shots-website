@@ -52,7 +52,7 @@ if (isset($_POST['forgot_password'])) {
             $mail->setFrom('your-email@gmail.com', 'CRTVSHOTS');
             $mail->addAddress($user_email);
 
-            $reset_link = "http://localhost/crtv-shots-website/backend/config/reset_password.php?token=$token";
+            $reset_link = "http://localhost:8000/config/reset_password.php?token=$token";
 
             $mail->isHTML(true);
             $mail->Subject = "Password Reset Request";

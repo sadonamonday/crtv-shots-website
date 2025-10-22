@@ -60,7 +60,7 @@ if (empty($row['verification_token'])) {
 }
 
 // Send verification email
-$verificationLink = "http://localhost/crtv-shots-website/backend/config/verify_email.php?token=$token";
+$verificationLink = "http://localhost:8000/config/verify_email.php?token=$token";
 
 $mail = new PHPMailer(true);
 try {
