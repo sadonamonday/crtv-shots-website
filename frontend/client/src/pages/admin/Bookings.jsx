@@ -44,20 +44,20 @@ function Guard({ children }) {
 
 function Table({ items, onEdit, onDelete }) {
   return (
-    <div style={{ overflowX: 'auto' }}>
-      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+    <div style={{ overflowX: 'auto', maxWidth: '100%', fontSize: '0.85rem' }}>
+      <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '900px' }}>
         <thead>
           <tr style={{ background: '#111' }}>
-            <th style={{ textAlign: 'left', padding: 8, borderBottom: '1px solid #222' }}>Type</th>
-            <th style={{ textAlign: 'left', padding: 8, borderBottom: '1px solid #222' }}>ID</th>
-            <th style={{ textAlign: 'left', padding: 8, borderBottom: '1px solid #222' }}>Customer</th>
-            <th style={{ textAlign: 'left', padding: 8, borderBottom: '1px solid #222' }}>Email</th>
-            <th style={{ textAlign: 'left', padding: 8, borderBottom: '1px solid #222' }}>Service</th>
-            <th style={{ textAlign: 'left', padding: 8, borderBottom: '1px solid #222' }}>Date & Time</th>
-            <th style={{ textAlign: 'left', padding: 8, borderBottom: '1px solid #222' }}>Amount</th>
-            <th style={{ textAlign: 'left', padding: 8, borderBottom: '1px solid #222' }}>Payment</th>
-            <th style={{ textAlign: 'left', padding: 8, borderBottom: '1px solid #222' }}>Status</th>
-            <th style={{ textAlign: 'left', padding: 8, borderBottom: '1px solid #222' }}>Actions</th>
+            <th style={{ textAlign: 'left', padding: 6, borderBottom: '1px solid #222', fontSize: '0.8rem' }}>Type</th>
+            <th style={{ textAlign: 'left', padding: 6, borderBottom: '1px solid #222', fontSize: '0.8rem' }}>ID</th>
+            <th style={{ textAlign: 'left', padding: 6, borderBottom: '1px solid #222', fontSize: '0.8rem' }}>Customer</th>
+            <th style={{ textAlign: 'left', padding: 6, borderBottom: '1px solid #222', fontSize: '0.8rem' }}>Email</th>
+            <th style={{ textAlign: 'left', padding: 6, borderBottom: '1px solid #222', fontSize: '0.8rem' }}>Service</th>
+            <th style={{ textAlign: 'left', padding: 6, borderBottom: '1px solid #222', fontSize: '0.8rem' }}>Date & Time</th>
+            <th style={{ textAlign: 'left', padding: 6, borderBottom: '1px solid #222', fontSize: '0.8rem' }}>Amount</th>
+            <th style={{ textAlign: 'left', padding: 6, borderBottom: '1px solid #222', fontSize: '0.8rem' }}>Payment</th>
+            <th style={{ textAlign: 'left', padding: 6, borderBottom: '1px solid #222', fontSize: '0.8rem' }}>Status</th>
+            <th style={{ textAlign: 'left', padding: 6, borderBottom: '1px solid #222', fontSize: '0.8rem' }}>Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -85,11 +85,11 @@ function Table({ items, onEdit, onDelete }) {
             
             return (
               <tr key={b.id}>
-                <td style={{ padding: 8, borderBottom: '1px solid #222' }}>
+                <td style={{ padding: 6, borderBottom: '1px solid #222' }}>
                   <span style={{
-                    padding: '2px 6px',
-                    borderRadius: '4px',
-                    fontSize: '12px',
+                    padding: '1px 4px',
+                    borderRadius: '3px',
+                    fontSize: '10px',
                     fontWeight: 'bold',
                     backgroundColor: b.type === 'order' ? '#1e40af' : '#059669',
                     color: 'white'
@@ -97,36 +97,36 @@ function Table({ items, onEdit, onDelete }) {
                     {b.type === 'order' ? 'ORDER' : 'BOOKING'}
                   </span>
                 </td>
-                <td style={{ padding: 8, borderBottom: '1px solid #222' }}>{b.id}</td>
-                <td style={{ padding: 8, borderBottom: '1px solid #222' }}>{b.customer}</td>
-                <td style={{ padding: 8, borderBottom: '1px solid #222' }}>{b.email || (b.type === 'order' ? b.customerEmail : '')}</td>
-                <td style={{ padding: 8, borderBottom: '1px solid #222' }}>{b.service}</td>
-                <td style={{ padding: 8, borderBottom: '1px solid #222' }}>
+                <td style={{ padding: 6, borderBottom: '1px solid #222', fontSize: '0.8rem' }}>{b.id}</td>
+                <td style={{ padding: 6, borderBottom: '1px solid #222', fontSize: '0.8rem', maxWidth: '120px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{b.customer}</td>
+                <td style={{ padding: 6, borderBottom: '1px solid #222', fontSize: '0.8rem', maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{b.email || (b.type === 'order' ? b.customerEmail : '')}</td>
+                <td style={{ padding: 6, borderBottom: '1px solid #222', fontSize: '0.8rem', maxWidth: '120px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{b.service}</td>
+                <td style={{ padding: 6, borderBottom: '1px solid #222', fontSize: '0.8rem' }}>
                   {b.date}{b.time ? ` ${b.time}` : ''}
                 </td>
-                <td style={{ padding: 8, borderBottom: '1px solid #222' }}>
+                <td style={{ padding: 6, borderBottom: '1px solid #222', fontSize: '0.8rem' }}>
                   <div>
                     <div style={{ fontWeight: 'bold' }}>
                       {typeof b.amount === 'number' ? `R${b.amount.toFixed(2)}` : ''}
                     </div>
                     {b.type === 'order' && b.is_deposit && b.remaining_amount > 0 && (
-                      <div style={{ fontSize: '12px', color: '#fbbf24' }}>
+                      <div style={{ fontSize: '10px', color: '#fbbf24' }}>
                         Remaining: R{b.remaining_amount.toFixed(2)}
                       </div>
                     )}
                     {b.type === 'order' && b.service_amount && b.service_amount !== b.amount && (
-                      <div style={{ fontSize: '12px', color: '#9ca3af' }}>
+                      <div style={{ fontSize: '10px', color: '#9ca3af' }}>
                         Total: R{b.service_amount.toFixed(2)}
                       </div>
                     )}
                   </div>
                 </td>
-                <td style={{ padding: 8, borderBottom: '1px solid #222' }}>
+                <td style={{ padding: 6, borderBottom: '1px solid #222', fontSize: '0.8rem' }}>
                   <span style={{ color: paymentColor, fontWeight: 'bold' }}>
                     {paymentType}
                   </span>
                 </td>
-                <td style={{ padding: 8, borderBottom: '1px solid #222' }}>
+                <td style={{ padding: 6, borderBottom: '1px solid #222', fontSize: '0.8rem' }}>
                   <span style={{
                     color: b.status === 'confirmed' ? '#4ade80' : 
                            b.status === 'pending' ? '#fbbf24' : 
@@ -135,9 +135,9 @@ function Table({ items, onEdit, onDelete }) {
                     {b.status}
                   </span>
                 </td>
-                <td style={{ padding: 8, borderBottom: '1px solid #222' }}>
-                  <button onClick={() => onEdit(b)} style={{ marginRight: 8 }}>Edit</button>
-                  <button onClick={() => onDelete(b.id)} style={{ color: '#f55' }}>Delete</button>
+                <td style={{ padding: 6, borderBottom: '1px solid #222' }}>
+                  <button onClick={() => onEdit(b)} style={{ marginRight: 4, fontSize: '0.75rem', padding: '2px 6px' }}>Edit</button>
+                  <button onClick={() => onDelete(b.id)} style={{ color: '#f55', fontSize: '0.75rem', padding: '2px 6px' }}>Delete</button>
                 </td>
               </tr>
             );
@@ -150,17 +150,43 @@ function Table({ items, onEdit, onDelete }) {
 
 export default function AdminBookings() {
   const [items, setItems] = useState([]);
-  const [form, setForm] = useState({ id: '', customer: '', service: '', date: '', status: 'pending' });
+  const [loading, setLoading] = useState(false);
+  const [form, setForm] = useState({ 
+    id: '', 
+    customer: '', 
+    email: '', 
+    phone: '', 
+    service: '', 
+    date: '', 
+    time: '',
+    notes: '',
+    amount: 0,
+    payment_option: '',
+    status: 'pending' 
+  });
   const [filters, setFilters] = useState({ status: '', email: '', date_from: '', date_to: '' });
 
   const load = async (f = filters) => {
+    if (loading) return; // Prevent multiple simultaneous requests
+    setLoading(true);
     try {
+      console.log('Loading bookings and orders...');
       // Fetch both bookings and paid orders
       const [bookingsRes, ordersRes] = await Promise.all([
         fetch(buildApiUrl('/bookings/getBookings.php?admin=1'), { credentials: 'include' }),
-        fetch(buildApiUrl('/orders/getOrders.php?admin=1&status=paid'), { credentials: 'include' })
+        fetch(buildApiUrl('/orders/getOrders.php?admin=1'), { credentials: 'include' })
       ]);
+      
+      console.log('Bookings response status:', bookingsRes.status);
+      console.log('Orders response status:', ordersRes.status);
 
+      if (!bookingsRes.ok) {
+        console.error('Bookings fetch failed:', bookingsRes.status, bookingsRes.statusText);
+      }
+      if (!ordersRes.ok) {
+        console.error('Orders fetch failed:', ordersRes.status, ordersRes.statusText);
+      }
+      
       const bookings = bookingsRes.ok ? await bookingsRes.json() : [];
       const orders = ordersRes.ok ? await ordersRes.json() : [];
 
@@ -174,13 +200,16 @@ export default function AdminBookings() {
             ...booking,
             type: 'booking',
             id: booking.id,
-            customer: booking.customer || booking.customerName,
+            customer: booking.customer || booking.customerName || booking.customer_name,
+            email: booking.email || booking.customer_email,
+            phone: booking.phone || booking.customer_phone,
             service: booking.service,
             date: booking.date,
             time: booking.time,
-            status: booking.status,
+            notes: booking.notes,
             amount: booking.amount || 0,
-            paymentType: booking.paymentOption || 'pending'
+            payment_option: booking.paymentOption || booking.payment_option || 'pending',
+            status: booking.status
           });
         });
       }
@@ -213,13 +242,16 @@ export default function AdminBookings() {
             type: 'order',
             id: order.order_id || order.id,
             customer: order.customerName || order.customer_name,
+            email: order.customer_email || order.email,
+            phone: order.customer_phone || order.phone,
             service: serviceName,
             date: order.created_at || order.createdAt,
             time: null,
-            status: 'confirmed',
+            notes: order.notes || '',
             amount: paidAmount,
             service_amount: serviceAmount,
             remaining_amount: remainingAmount,
+            payment_option: isDeposit ? 'deposit' : 'full',
             paymentType: isDeposit ? 'deposit' : 'full',
             is_deposit: isDeposit,
             is_full_payment: isFullPayment
@@ -233,11 +265,14 @@ export default function AdminBookings() {
       console.log('Loaded bookings:', bookings);
       console.log('Loaded orders:', orders);
       console.log('Combined items:', combinedItems);
+      console.log('Total items to display:', combinedItems.length);
       
       setItems(combinedItems);
     } catch (e) {
       console.error('Error loading bookings and orders:', e);
       setItems([]);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -257,16 +292,37 @@ export default function AdminBookings() {
     e.preventDefault();
     try {
       if (form.id) {
-        const response = await fetch(buildApiUrl('/bookings/updateBooking.php'), {
+        // Check if this is an order or booking
+        const isOrder = form.type === 'order';
+        const endpoint = isOrder ? '/orders/updateOrder.php' : '/bookings/updateBooking.php';
+        
+        // Prepare data based on type
+        const requestData = isOrder ? {
+          id: form.id,
+          customerName: form.customer,
+          customerEmail: form.email,
+          customerPhone: form.phone,
+          total: form.amount,
+          status: form.status,
+          notes: form.notes,
+        } : {
+          id: form.id,
+          customer: form.customer,
+          email: form.email,
+          phone: form.phone,
+          service: form.service,
+          date: form.date,
+          time: form.time,
+          notes: form.notes,
+          amount: form.amount,
+          payment_option: form.payment_option,
+          status: form.status,
+        };
+        
+        const response = await fetch(buildApiUrl(endpoint), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            id: form.id,
-            customer: form.customer,
-            service: form.service,
-            date: form.date,
-            status: form.status,
-          }),
+          body: JSON.stringify(requestData),
           credentials: 'include',
         });
         
@@ -274,13 +330,30 @@ export default function AdminBookings() {
           const data = await response.json();
           if (data.ok) {
             setItems((prev) => prev.map((it) => it.id === form.id ? form : it));
-            setForm({ id: '', customer: '', service: '', date: '', status: 'pending' });
-            alert('Booking updated successfully!');
+            setForm({ 
+              id: '', 
+              customer: '', 
+              email: '', 
+              phone: '', 
+              service: '', 
+              date: '', 
+              time: '',
+              notes: '',
+              amount: 0,
+              payment_option: '',
+              status: 'pending' 
+            });
+            alert(isOrder ? 'Order updated successfully!' : 'Booking updated successfully!');
           } else {
-            alert('Failed to update booking');
+            alert(isOrder ? 'Failed to update order' : 'Failed to update booking');
           }
         } else {
-          alert('Failed to update booking');
+          const errorText = await response.text().catch(() => 'Unknown error');
+          if (isOrder) {
+            alert('Orders cannot be updated. This is a payment record that cannot be modified.');
+          } else {
+            alert(`Failed to update booking: ${errorText}`);
+          }
         }
       } else {
         const res = await fetch(buildApiUrl('/bookings/createBookings.php'), {
@@ -304,15 +377,33 @@ export default function AdminBookings() {
             alert('Failed to create booking');
           }
         } else {
-          const error = await res.json().catch(() => ({ error: 'Failed to create booking' }));
-          alert(error.error || 'Failed to create booking');
+          const errorText = await res.text().catch(() => 'Unknown error');
+          let errorData;
+          try {
+            errorData = JSON.parse(errorText);
+          } catch {
+            errorData = { error: errorText };
+          }
+          alert(errorData.error || 'Failed to create booking');
         }
       }
     } catch (err) {
       console.error('Booking submission error:', err);
-      alert('An error occurred while processing the booking');
+      alert(`An error occurred while processing the booking: ${err.message || 'Unknown error'}`);
     }
-    setForm({ id: '', customer: '', service: '', date: '', status: 'pending' });
+    setForm({ 
+      id: '', 
+      customer: '', 
+      email: '', 
+      phone: '', 
+      service: '', 
+      date: '', 
+      time: '',
+      notes: '',
+      amount: 0,
+      payment_option: '',
+      status: 'pending' 
+    });
   };
 
   const onEdit = (b) => setForm(b);
@@ -329,19 +420,20 @@ export default function AdminBookings() {
   };
 
   return (
-    <AdminLayout title="Bookings & Orders">
-      <div style={{ padding: 24, color: '#fff' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
-          <h1 style={{ margin: 0 }}>Bookings & Orders</h1>
+    <Guard>
+      <AdminLayout title="Bookings & Orders">
+        <div style={{ padding: 16, color: '#fff', maxWidth: '100%', overflowX: 'auto' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8, marginBottom: 16 }}>
+          <h1 style={{ margin: 0, fontSize: '1.5rem' }}>Bookings & Orders</h1>
           <div>
-            <Link to="/admin" style={{ color: '#06d6a0', marginRight: 12 }}>Dashboard</Link>
-            <Link to="/admin/availability" style={{ color: '#06d6a0' }}>Availability</Link>
+            <Link to="/admin" style={{ color: '#06d6a0', marginRight: 8, fontSize: '0.9rem' }}>Dashboard</Link>
+            <Link to="/admin/availability" style={{ color: '#06d6a0', fontSize: '0.9rem' }}>Availability</Link>
           </div>
         </div>
 
         {/* Filters */}
-        <form onSubmit={(e)=>{e.preventDefault(); load(filters);}} style={{ marginTop: 16, background: '#101010', border: '1px solid #222', borderRadius: 12, padding: 16 }}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 12 }}>
+        <form onSubmit={(e)=>{e.preventDefault(); load(filters);}} style={{ marginBottom: 16, background: '#101010', border: '1px solid #222', borderRadius: 8, padding: 12 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: 8 }}>
             <label>
               <div>Status</div>
               <select value={filters.status} onChange={(e)=>setFilters({ ...filters, status: e.target.value })}>
@@ -365,29 +457,54 @@ export default function AdminBookings() {
               <input type="date" value={filters.date_to} onChange={(e)=>setFilters({ ...filters, date_to: e.target.value })} />
             </label>
           </div>
-          <div style={{ marginTop: 12 }}>
-            <button type="submit" style={{ marginRight: 8 }}>Apply Filters</button>
-            <button type="button" onClick={()=>{ setFilters({ status:'', email:'', date_from:'', date_to:''}); load({ status:'', email:'', date_from:'', date_to:''}); }}>Reset</button>
+          <div style={{ marginTop: 8, display: 'flex', gap: 8 }}>
+            <button type="submit" style={{ padding: '6px 12px', fontSize: '0.8rem' }}>Apply Filters</button>
+            <button type="button" onClick={()=>{ setFilters({ status:'', email:'', date_from:'', date_to:''}); load({ status:'', email:'', date_from:'', date_to:''}); }} style={{ padding: '6px 12px', fontSize: '0.8rem' }}>Reset</button>
           </div>
         </form>
 
-        <form onSubmit={submit} style={{ marginTop: 16, background: '#121212', border: '1px solid #222', borderRadius: 12, padding: 16 }}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 12 }}>
-            <label>
-              <div>Customer</div>
-              <input value={form.customer} onChange={(e) => setForm({ ...form, customer: e.target.value })} required />
+        <form onSubmit={submit} style={{ marginBottom: 16, background: '#121212', border: '1px solid #222', borderRadius: 8, padding: 12 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 8 }}>
+            <label style={{ fontSize: '0.85rem' }}>
+              <div style={{ marginBottom: 4 }}>Customer</div>
+              <input value={form.customer} onChange={(e) => setForm({ ...form, customer: e.target.value })} required style={{ padding: '6px', fontSize: '0.8rem' }} />
             </label>
-            <label>
-              <div>Service</div>
-              <input value={form.service} onChange={(e) => setForm({ ...form, service: e.target.value })} required />
+            <label style={{ fontSize: '0.85rem' }}>
+              <div style={{ marginBottom: 4 }}>Email</div>
+              <input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} style={{ padding: '6px', fontSize: '0.8rem' }} />
             </label>
-            <label>
-              <div>Date & Time</div>
-              <input type="datetime-local" value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} required />
+            <label style={{ fontSize: '0.85rem' }}>
+              <div style={{ marginBottom: 4 }}>Phone</div>
+              <input type="tel" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} style={{ padding: '6px', fontSize: '0.8rem' }} />
             </label>
-            <label>
-              <div>Status</div>
-              <select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>
+            <label style={{ fontSize: '0.85rem' }}>
+              <div style={{ marginBottom: 4 }}>Service</div>
+              <input value={form.service} onChange={(e) => setForm({ ...form, service: e.target.value })} required style={{ padding: '6px', fontSize: '0.8rem' }} />
+            </label>
+            <label style={{ fontSize: '0.85rem' }}>
+              <div style={{ marginBottom: 4 }}>Date</div>
+              <input type="date" value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} required style={{ padding: '6px', fontSize: '0.8rem' }} />
+            </label>
+            <label style={{ fontSize: '0.85rem' }}>
+              <div style={{ marginBottom: 4 }}>Time</div>
+              <input type="time" value={form.time} onChange={(e) => setForm({ ...form, time: e.target.value })} style={{ padding: '6px', fontSize: '0.8rem' }} />
+            </label>
+            <label style={{ fontSize: '0.85rem' }}>
+              <div style={{ marginBottom: 4 }}>Amount</div>
+              <input type="number" step="0.01" value={form.amount} onChange={(e) => setForm({ ...form, amount: parseFloat(e.target.value) || 0 })} style={{ padding: '6px', fontSize: '0.8rem' }} />
+            </label>
+            <label style={{ fontSize: '0.85rem' }}>
+              <div style={{ marginBottom: 4 }}>Payment Option</div>
+              <select value={form.payment_option} onChange={(e) => setForm({ ...form, payment_option: e.target.value })} style={{ padding: '6px', fontSize: '0.8rem' }}>
+                <option value="">Select Payment Option</option>
+                <option value="full">Full Payment</option>
+                <option value="deposit">Deposit Only</option>
+                <option value="pending">Pending</option>
+              </select>
+            </label>
+            <label style={{ fontSize: '0.85rem' }}>
+              <div style={{ marginBottom: 4 }}>Status</div>
+              <select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })} style={{ padding: '6px', fontSize: '0.8rem' }}>
                 <option value="pending">Pending</option>
                 <option value="confirmed">Confirmed</option>
                 <option value="completed">Completed</option>
@@ -395,16 +512,53 @@ export default function AdminBookings() {
               </select>
             </label>
           </div>
-          <div style={{ marginTop: 12 }}>
-            <button type="submit">{form.id ? 'Update Booking' : 'Create Booking'}</button>
+          <div style={{ marginTop: 8 }}>
+            <label style={{ fontSize: '0.85rem' }}>
+              <div style={{ marginBottom: 4 }}>Notes</div>
+              <textarea 
+                value={form.notes} 
+                onChange={(e) => setForm({ ...form, notes: e.target.value })} 
+                style={{ width: '100%', minHeight: '60px', resize: 'vertical', padding: '6px', fontSize: '0.8rem' }}
+                placeholder="Additional notes or requirements..."
+              />
+            </label>
+          </div>
+          <div style={{ marginTop: 8, display: 'flex', gap: 8 }}>
+            <button type="submit" style={{ padding: '6px 12px', fontSize: '0.8rem' }}>{form.id ? 'Update Booking' : 'Create Booking'}</button>
             {form.id && (
-              <button type="button" onClick={() => setForm({ id: '', customer: '', service: '', date: '', status: 'pending' })} style={{ marginLeft: 8 }}>Cancel</button>
+              <button type="button" onClick={() => setForm({ 
+                id: '', 
+                customer: '', 
+                email: '', 
+                phone: '', 
+                service: '', 
+                date: '', 
+                time: '',
+                notes: '',
+                amount: 0,
+                payment_option: '',
+                status: 'pending' 
+              })} style={{ padding: '6px 12px', fontSize: '0.8rem' }}>Cancel</button>
             )}
           </div>
         </form>
 
         <div style={{ marginTop: 16 }}>
-          {items.length === 0 ? (
+          {loading ? (
+            <div style={{ 
+              textAlign: 'center', 
+              padding: '40px 20px', 
+              background: '#1a1a1a', 
+              borderRadius: '8px',
+              border: '1px solid #333'
+            }}>
+              <div style={{ fontSize: '24px', marginBottom: '16px' }}>⏳</div>
+              <h3 style={{ margin: '0 0 8px 0', color: '#fff' }}>Loading...</h3>
+              <p style={{ margin: '0', color: '#999', fontSize: '14px' }}>
+                Fetching bookings and orders...
+              </p>
+            </div>
+          ) : items.length === 0 ? (
             <div style={{ 
               textAlign: 'center', 
               padding: '40px 20px', 
@@ -432,5 +586,6 @@ export default function AdminBookings() {
         </div>
       </div>
     </AdminLayout>
+    </Guard>
   );
 }

@@ -174,8 +174,9 @@ export default function Availability() {
   };
 
   return (
-    <AdminLayout title="Availability">
-      <div style={{ padding: 24, color: '#fff' }}>
+    <Guard>
+      <AdminLayout title="Availability">
+        <div style={{ padding: 24, color: '#fff' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
           <h1 style={{ margin: 0 }}>Availability</h1>
           <div>
@@ -215,7 +216,8 @@ export default function Availability() {
             </div>
           </>
         )}
-      </div>
-    </AdminLayout>
+        </div>
+      </AdminLayout>
+    </Guard>
   );
 }

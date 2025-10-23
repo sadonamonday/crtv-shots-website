@@ -8,6 +8,7 @@ export default function PaymentSuccess() {
   const [paymentData, setPaymentData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [countdown, setCountdown] = useState(3);
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
@@ -28,6 +29,17 @@ export default function PaymentSuccess() {
         
         if (data.success) {
           setPaymentData(data);
+          // Auto-redirect to profile after 3 seconds with countdown
+          const countdownInterval = setInterval(() => {
+            setCountdown(prev => {
+              if (prev <= 1) {
+                clearInterval(countdownInterval);
+                navigate('/profile');
+                return 0;
+              }
+              return prev - 1;
+            });
+          }, 1000);
         } else {
           setError(data.error || 'Failed to fetch payment status');
         }
@@ -114,6 +126,9 @@ export default function PaymentSuccess() {
               <div className="text-green-500 text-6xl mb-4">✅</div>
               <h1 className="text-3xl font-bold mb-2">Payment Successful!</h1>
               <p className="text-gray-400">Your payment has been processed successfully</p>
+              <p className="text-blue-400 text-sm mt-2">
+                Redirecting to your profile in {countdown} seconds...
+              </p>
             </div>
 
             {/* Payment Details */}
@@ -188,7 +203,7 @@ export default function PaymentSuccess() {
                 onClick={() => navigate('/profile')}
                 className="bg-blue-600 text-white px-6 py-3 rounded font-bold hover:bg-blue-500 transition"
               >
-                View My Orders
+                View My Orders & Bookings
               </button>
               
               <button
