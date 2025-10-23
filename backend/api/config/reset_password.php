@@ -48,7 +48,7 @@ if (isset($_POST['reset_password']) && isset($_GET['token'])) {
         mysqli_stmt_bind_param($stmt, "ss", $hash, $token_hash);
 
         if (mysqli_stmt_execute($stmt)) {
-            echo "<script>alert('Password reset successful! You can now log in.'); window.location.href='http://localhost:5174/login';</script>";
+            echo "<script>alert('Password reset successful! You can now log in.'); window.location.href='http://localhost:5173/login';</script>";
             exit();
         } else {
             $error = "Failed to reset password. Please try again later.";

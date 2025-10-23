@@ -10,7 +10,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
     json_error('Method not allowed', 405);
 }
 
-// Ensure table exists
+// Ensure table exists with clean structure
 mysqli_query($con, "CREATE TABLE IF NOT EXISTS availability (
   date DATE PRIMARY KEY,
   is_available TINYINT(1) NOT NULL DEFAULT 1,

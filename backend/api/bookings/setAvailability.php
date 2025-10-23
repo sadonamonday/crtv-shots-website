@@ -1,7 +1,7 @@
 <?php
 header("Access-Control-Allow-Origin: http://localhost:5173");
 header("Access-Control-Allow-Credentials: true");
-header("Access-Control-Allow-Methods: GET, OPTIONS");
+header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With");
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
@@ -33,8 +33,9 @@ foreach ($dates as $d) {
 }
 $dates = array_keys($normalized);
 
-// Ensure table exists
-mysqli_query($con, "CREATE TABLE IF NOT EXISTS availability (
+// Drop and recreate the table to ensure clean structure
+mysqli_query($con, "DROP TABLE IF EXISTS availability");
+mysqli_query($con, "CREATE TABLE availability (
   date DATE PRIMARY KEY,
   is_available TINYINT(1) NOT NULL DEFAULT 1,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
@@ -43,19 +44,29 @@ mysqli_query($con, "CREATE TABLE IF NOT EXISTS availability (
 // Strategy: replace full set. Mark all existing rows as unavailable, then upsert new dates as available
 // More efficient: delete all and insert new.
 if (!mysqli_query($con, "DELETE FROM availability")) {
-    json_error('Failed to reset availability');
+    json_error('Failed to reset availability: ' . mysqli_error($con));
 }
 
+$saved_count = 0;
 if (!empty($dates)) {
-    $values = [];
+    // Use prepared statement for better security
+    $stmt = mysqli_prepare($con, "INSERT INTO availability (date, is_available) VALUES (?, 1)");
+    if (!$stmt) {
+        json_error('Failed to prepare statement: ' . mysqli_error($con));
+    }
+    
     foreach ($dates as $d) {
-        $d_esc = mysqli_real_escape_string($con, $d);
-        $values[] = "('{$d_esc}', 1)";
+        mysqli_stmt_bind_param($stmt, 's', $d);
+        if (mysqli_stmt_execute($stmt)) {
+            $saved_count++;
+        } else {
+            error_log("Failed to save date $d: " . mysqli_stmt_error($stmt));
+        }
     }
-    $sql = "INSERT INTO availability (date, is_available) VALUES " . implode(',', $values);
-    if (!mysqli_query($con, $sql)) {
-        json_error('Failed to save availability');
-    }
+    mysqli_stmt_close($stmt);
 }
 
-json_ok(['saved' => count($dates)]);
+// Log the operation for debugging
+error_log("Availability update: Saved $saved_count out of " . count($dates) . " dates");
+
+json_ok(['saved' => $saved_count, 'total' => count($dates)]);

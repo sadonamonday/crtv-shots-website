@@ -28,7 +28,7 @@ $cookieParams = [
 // Optionally set a stable session name to avoid conflicts with other apps on same domain
 if (session_status() === PHP_SESSION_NONE) {
     if (session_name() === "PHPSESSID") {
-        session_name('CRTVADMINSESSID');
+        session_name('CRTVSESSID');
     }
     // Use array form where available
     if (PHP_VERSION_ID >= 70300) {

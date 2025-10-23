@@ -5,14 +5,21 @@ header("Access-Control-Allow-Methods: GET, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With");
 require_once __DIR__ . '/../utils/bootstrap.php';
 require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/../utils/session.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
     json_error('Method not allowed', 405);
 }
 
+// Check database connection
+if (!$con) {
+    json_error('Database connection failed: ' . mysqli_connect_error(), 500);
+}
+
 // Ensure table exists for first-time environments
 mysqli_query($con, "CREATE TABLE IF NOT EXISTS bookings (
   id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NULL,
   customer_name VARCHAR(255) NOT NULL,
   customer_email VARCHAR(255) DEFAULT NULL,
   customer_phone VARCHAR(64) DEFAULT NULL,
@@ -45,7 +52,28 @@ if ($colRes && mysqli_num_rows($colRes) === 0) {
     @mysqli_query($con, "ALTER TABLE payments ADD COLUMN booking_id INT NULL, ADD INDEX (booking_id)");
 }
 
-$is_admin = isset($_GET['admin']) && $_GET['admin'] == '1';
+// Check if user is admin
+$is_admin = false;
+if (isset($_GET['admin']) && $_GET['admin'] == '1') {
+    // For admin dashboard access, allow access if admin=1 is passed
+    // In production, you might want to add additional authentication checks
+    $is_admin = true;
+    
+    // Verify the user is actually an admin
+    $user_id = isset($_SESSION['user_id']) ? (int)$_SESSION['user_id'] : null;
+    if ($user_id) {
+        // Check if user has admin role in signup table
+        $admin_check = mysqli_prepare($con, "SELECT role FROM signup WHERE user_id = ?");
+        if ($admin_check) {
+            mysqli_stmt_bind_param($admin_check, 'i', $user_id);
+            mysqli_stmt_execute($admin_check);
+            $result = mysqli_stmt_get_result($admin_check);
+            $user_data = $result->fetch_assoc();
+            mysqli_stmt_close($admin_check);
+            $is_admin = ($user_data && $user_data['role'] === 'admin');
+        }
+    }
+}
 
 // Filters
 $status = isset($_GET['status']) ? trim($_GET['status']) : '';
@@ -53,10 +81,16 @@ $email = isset($_GET['email']) ? trim($_GET['email']) : '';
 $date_from = isset($_GET['date_from']) ? trim($_GET['date_from']) : '';
 $date_to = isset($_GET['date_to']) ? trim($_GET['date_to']) : '';
 
+// Set user_id if not already set (for non-admin requests)
+if (!isset($user_id)) {
+    $user_id = isset($_SESSION['user_id']) ? (int)$_SESSION['user_id'] : null;
+}
+
 $conditions = [];
 $params = [];
 $types = '';
 
+if ($user_id && !$is_admin) { $conditions[] = 'user_id = ?'; $params[] = $user_id; $types .= 'i'; }
 if ($status !== '') { $conditions[] = 'status = ?'; $params[] = $status; $types .= 's'; }
 if ($email !== '') { $conditions[] = 'customer_email = ?'; $params[] = $email; $types .= 's'; }
 if ($date_from !== '') { $conditions[] = 'date >= ?'; $params[] = $date_from; $types .= 's'; }
@@ -75,6 +109,7 @@ if (!empty($conditions)) {
         $res = false;
     }
 } else {
+    // Select without user_id since the column doesn't exist in the bookings table
     $sql = "SELECT id, customer_name, customer_email, customer_phone, service, date, time, notes, amount, payment_option, status, created_at FROM bookings ORDER BY created_at DESC LIMIT $limit";
     $res = mysqli_query($con, $sql);
 }
@@ -86,6 +121,7 @@ if ($res) {
         $ids[] = (int)$row['id'];
         $list[] = [
             'id' => (int)$row['id'],
+            'userId' => null, // user_id column doesn't exist in bookings table
             'customer' => $row['customer_name'],
             'service' => $row['service'],
             'date' => $row['date'],

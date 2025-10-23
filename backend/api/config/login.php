@@ -1,4 +1,7 @@
 <?php
+require_once __DIR__ . '/../utils/bootstrap.php';
+
+// Add CORS headers for frontend access
 header("Access-Control-Allow-Origin: http://localhost:5173");
 header("Access-Control-Allow-Credentials: true");
 header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
@@ -8,11 +11,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
     exit;
 }
-header('Content-Type: application/json');
 
 include 'database.php';
 require_once __DIR__ . '/toggles.php';
-session_start();
 
 // Use Composer autoloader for PHPMailer
 require __DIR__ . "/../../../vendor/autoload.php";

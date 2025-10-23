@@ -82,7 +82,7 @@ if (isset($_POST['signup'])) {
         $insert->bind_param("ssssssssss", $user_firstname, $user_surname, $user_username, $user_email, $hash_password, $user_ip, $user_address, $user_contact, $token, $expires);
 
         if ($insert->execute()) {
-            $verify_link = "http://localhost/crtv-shots-website/backend/api/config/verify_email.php?token=$token";
+            $verify_link = "http://localhost:8000/backend/api/config/verify_email.php?token=$token";
             $mail = new PHPMailer(true);
             try {
                 $mail->isSMTP();

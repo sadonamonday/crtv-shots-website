@@ -82,7 +82,7 @@ if (!$insert->execute()) {
     exit;
 }
 
-$verify_link = "http://localhost/crtv-shots-website/backend/api/config/verify_email.php?token=$token";
+$verify_link = "http://localhost:8000/backend/api/config/verify_email.php?token=$token";
 $mail = new PHPMailer(true);
 try {
     $mail->isSMTP();

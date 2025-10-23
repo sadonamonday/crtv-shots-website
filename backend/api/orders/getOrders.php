@@ -1,4 +1,14 @@
 <?php
+header("Access-Control-Allow-Origin: http://localhost:5173");
+header("Access-Control-Allow-Credentials: true");
+header("Access-Control-Allow-Methods: GET, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With");
+
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit;
+}
+
 require_once __DIR__ . '/../utils/bootstrap.php';
 require_once __DIR__ . '/../config/database.php';
 
@@ -9,6 +19,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
 // Ensure table exists (safe no-op if present)
 mysqli_query($con, "CREATE TABLE IF NOT EXISTS orders (
   id INT AUTO_INCREMENT PRIMARY KEY,
+  order_id VARCHAR(255) UNIQUE,
   user_id INT NULL,
   customer_name VARCHAR(255) NULL,
   customer_email VARCHAR(255) NULL,
@@ -21,14 +32,22 @@ mysqli_query($con, "CREATE TABLE IF NOT EXISTS orders (
   updated_at TIMESTAMP NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
 
+// Add order_id column if it doesn't exist (for existing tables)
+$result = mysqli_query($con, "SHOW COLUMNS FROM orders LIKE 'order_id'");
+if (!$result || mysqli_num_rows($result) == 0) {
+    mysqli_query($con, "ALTER TABLE orders ADD COLUMN order_id VARCHAR(255) UNIQUE");
+}
+
 function map_order_row($row) {
     return [
         'id' => (int)$row['id'],
+        'order_id' => $row['order_id'] ?? null,
         'userId' => isset($row['user_id']) ? (int)$row['user_id'] : null,
         'customerName' => $row['customer_name'] ?? null,
         'customerEmail' => $row['customer_email'] ?? null,
         'customerPhone' => $row['customer_phone'] ?? null,
         'items' => $row['items_json'] ? json_decode($row['items_json'], true) : [],
+        'items_json' => $row['items_json'] ?? null,
         'total' => (float)($row['total'] ?? 0),
         'status' => $row['status'] ?? 'pending',
         'notes' => $row['notes'] ?? null,
@@ -43,7 +62,31 @@ function map_order_row($row) {
 }
 
 // Filters
-$userId = isset($_GET['userId']) ? (int)$_GET['userId'] : null;
+// Check if user is admin
+$is_admin = false;
+if (isset($_GET['admin']) && $_GET['admin'] == '1') {
+    // For admin dashboard access, allow access if admin=1 is passed
+    // In production, you might want to add additional authentication checks
+    $is_admin = true;
+    
+    // Optional: verify the user is actually an admin (uncomment for production)
+    /*
+    $session_user_id = isset($_SESSION['user_id']) ? (int)$_SESSION['user_id'] : null;
+    if ($session_user_id) {
+        $admin_check = mysqli_prepare($con, "SELECT role FROM signup WHERE user_id = ?");
+        if ($admin_check) {
+            mysqli_stmt_bind_param($admin_check, 'i', $session_user_id);
+            mysqli_stmt_execute($admin_check);
+            $result = mysqli_stmt_get_result($admin_check);
+            $user_data = $result->fetch_assoc();
+            mysqli_stmt_close($admin_check);
+            $is_admin = ($user_data && $user_data['role'] === 'admin');
+        }
+    }
+    */
+}
+
+$userId = isset($_GET['userId']) ? (int)$_GET['userId'] : (isset($_SESSION['user_id']) ? (int)$_SESSION['user_id'] : null);
 $status = isset($_GET['status']) ? trim($_GET['status']) : null;
 $q = isset($_GET['q']) ? trim($_GET['q']) : null; // search by customer name or email
 $limit = isset($_GET['limit']) ? max(1, min(200, (int)$_GET['limit'])) : 100;
@@ -54,7 +97,8 @@ $where = [];
 $params = [];
 $types = '';
 
-if ($userId) { $where[] = 'user_id = ?'; $types .= 'i'; $params[] = $userId; }
+// Only filter by user_id if not in admin mode
+if ($userId && !$is_admin) { $where[] = 'user_id = ?'; $types .= 'i'; $params[] = $userId; }
 if ($status) { $where[] = 'status = ?'; $types .= 's'; $params[] = $status; }
 if ($q !== null && $q !== '') { $where[] = '(customer_name LIKE ? OR customer_email LIKE ?)'; $types .= 'ss'; $like = '%' . $q . '%'; $params[] = $like; $params[] = $like; }
 
@@ -75,4 +119,4 @@ while ($row = mysqli_fetch_assoc($result)) {
     $orders[] = map_order_row($row);
 }
 
-json_ok([ 'items' => $orders, 'count' => count($orders) ]);
+json_ok($orders);

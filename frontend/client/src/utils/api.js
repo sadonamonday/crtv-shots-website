@@ -7,18 +7,16 @@ try {
   }
 } catch (_) {}
 
-// Normalize legacy paths (e.g., '/backend/api/gallery/list.php' -> '/gallery/list.php')
+// Normalize legacy paths (e.g., '/config/signup_api.php' -> '/backend/api/config/signup_api.php')
 function normalizePath(path) {
   if (!path) return '/';
   let p = String(path).trim();
   // Ensure leading slash
   if (!p.startsWith('/')) p = '/' + p;
 
-  // Strip legacy prefixes
-  if (p.startsWith('/backend/api/')) {
-    p = p.replace('/backend/api/', '/');
-  } else if (p.startsWith('/api/')) {
-    p = p.replace('/api/', '/');
+  // Add backend/api prefix if not already present
+  if (!p.startsWith('/backend/api/')) {
+    p = '/backend/api' + p;
   }
   return p;
 }

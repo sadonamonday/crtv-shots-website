@@ -79,13 +79,18 @@ const Signup = () => {
     try {
       const apiUrl = buildApiUrl('/config/signup_api.php');
       console.log('Attempting to fetch from URL:', apiUrl);
+      console.log('Form data being sent:', Object.fromEntries(formDataToSend));
       const response = await fetch(apiUrl, {
         method: 'POST',
         body: formDataToSend,
         credentials: 'include'
       });
+      
+      console.log('Response status:', response.status);
+      console.log('Response headers:', response.headers);
 
       const data = await response.json();
+      console.log('Response data:', data);
       
       if (data.success) {
         setSuccess(true);
@@ -105,6 +110,7 @@ const Signup = () => {
       }
     } catch (error) {
       console.error("Signup error:", error);
+      console.error("Error details:", error.message);
       setErrors(["Network error. Please try again."]);
     } finally {
       setLoading(false);

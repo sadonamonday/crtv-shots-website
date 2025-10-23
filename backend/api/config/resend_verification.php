@@ -60,7 +60,7 @@ if (empty($row['verification_token'])) {
 }
 
 // Send verification email
-$verificationLink = "http://localhost:8000/config/verify_email.php?token=$token";
+$verificationLink = "http://localhost:8000/backend/api/config/verify_email.php?token=$token";
 
 $mail = new PHPMailer(true);
 try {

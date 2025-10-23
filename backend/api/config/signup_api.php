@@ -4,7 +4,7 @@ header("Access-Control-Allow-Credentials: true");
 header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With");
 
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+if (isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
     exit;
 }
@@ -13,6 +13,15 @@ header('Content-Type: application/json');
 session_start();
 include __DIR__ . "/database.php";
 require __DIR__ . "/../../../vendor/autoload.php";
+
+// Check database connection
+if (!$con) {
+    echo json_encode([
+        "success" => false,
+        "message" => "Database connection failed: " . mysqli_connect_error()
+    ]);
+    exit;
+}
 
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
@@ -59,27 +68,38 @@ if (isset($_POST['signup'])) {
 
     // ---------- CHECK USERNAME ----------
     $stmt = $con->prepare("SELECT user_id FROM signup WHERE user_username=?");
-    $stmt->bind_param("s", $user_username);
-    $stmt->execute();
-    if ($stmt->get_result()->num_rows > 0) {
-        $errors[] = "Username already exists.";
-        for ($i = 0; $i < 5; $i++) {
-            $suggest = $user_username . rand(10, 99);
-            $r = $con->prepare("SELECT user_id FROM signup WHERE user_username=?");
-            $r->bind_param("s", $suggest);
-            $r->execute();
-            if ($r->get_result()->num_rows == 0) $username_suggestions[] = $suggest;
+    if (!$stmt) {
+        $errors[] = "Database error: " . $con->error;
+    } else {
+        $stmt->bind_param("s", $user_username);
+        $stmt->execute();
+        if ($stmt->get_result()->num_rows > 0) {
+            $errors[] = "Username already exists.";
+            for ($i = 0; $i < 5; $i++) {
+                $suggest = $user_username . rand(10, 99);
+                $r = $con->prepare("SELECT user_id FROM signup WHERE user_username=?");
+                if ($r) {
+                    $r->bind_param("s", $suggest);
+                    $r->execute();
+                    if ($r->get_result()->num_rows == 0) $username_suggestions[] = $suggest;
+                    $r->close();
+                }
+            }
         }
+        $stmt->close();
     }
-    $stmt->close();
 
     // ---------- CHECK EMAIL ----------
     $stmt = $con->prepare("SELECT user_id FROM signup WHERE user_email=?");
-    $stmt->bind_param("s", $user_email);
-    $stmt->execute();
-    if ($stmt->get_result()->num_rows > 0)
-        $errors[] = "Email already registered.";
-    $stmt->close();
+    if (!$stmt) {
+        $errors[] = "Database error: " . $con->error;
+    } else {
+        $stmt->bind_param("s", $user_email);
+        $stmt->execute();
+        if ($stmt->get_result()->num_rows > 0)
+            $errors[] = "Email already registered.";
+        $stmt->close();
+    }
 
     // ---------- INSERT INTO DATABASE ----------
     if (empty($errors)) {
@@ -89,11 +109,19 @@ if (isset($_POST['signup'])) {
         if (preg_match('/^0[0-9]{9}$/', $user_contact)) $user_contact = '+27' . substr($user_contact, 1);
 
         $insert = $con->prepare("INSERT INTO signup (user_firstname,user_surname,user_username,user_email,user_password,user_ip,user_address,user_contact,verification_token,verification_token_expires_at) VALUES (?,?,?,?,?,?,?,?,?,?)");
+        if (!$insert) {
+            echo json_encode([
+                "success" => false,
+                "message" => "Database error: " . $con->error
+            ]);
+            exit;
+        }
+        
         $user_ip = $_SERVER['REMOTE_ADDR'];
         $insert->bind_param("ssssssssss", $user_firstname, $user_surname, $user_username, $user_email, $hash_password, $user_ip, $user_address, $user_contact, $token, $expires);
 
         if ($insert->execute()) {
-            $verify_link = "http://localhost:8000/config/verify_email.php?token=$token";
+            $verify_link = "http://localhost:8000/backend/api/config/verify_email.php?token=$token";
             $mail = new PHPMailer(true);
             try {
                 $mail->isSMTP();

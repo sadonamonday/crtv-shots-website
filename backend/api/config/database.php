@@ -1,12 +1,16 @@
 <?php
 $host = "localhost";
-$db_name = "crtvshots_db";
+$db_name = "CRTV";
 $username = "root";
-$password = "Password3500";
-$port = 3307;
+$password = "";
+$port = 3306;
 
 $con = mysqli_connect($host, $username, $password, $db_name, $port);
 
-// Note: Do not echo/die here on connection failure. Endpoints should handle $con === false and
-// return proper JSON errors. This avoids leaking HTML into API responses.
+// Check connection
+if (!$con) {
+    // Don't echo/die here - let the calling script handle the error
+    // This allows for proper JSON error responses
+    error_log("Database connection failed: " . mysqli_connect_error());
+}
 ?>
