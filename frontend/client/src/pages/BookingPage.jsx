@@ -193,7 +193,7 @@ const handlePay = async () => {
     // If you're testing with admin email, it will be changed to customer@test.com
 
     const res = await fetch(
-      "http://localhost:8000/payments/payfast_initiate.php",
+      "http://localhost:8000/backend/api/payments/payfast_initiate.php",
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
