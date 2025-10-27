@@ -11,7 +11,7 @@ if (isset($_GET['token'])) {
     $token = $_GET['token'];
     $token_hash = hash("sha256", $token);
 
-    $query = "SELECT * FROM signup WHERE reset_token_hash=? AND reset_token_expires_at > NOW()";
+    $query = "SELECT * FROM users WHERE reset_token_hash=? AND reset_token_expires_at > NOW()";
     $stmt = mysqli_prepare($con, $query);
     mysqli_stmt_bind_param($stmt, "s", $token_hash);
     mysqli_stmt_execute($stmt);
@@ -43,7 +43,7 @@ if (isset($_POST['reset_password']) && isset($_GET['token'])) {
         $error = "Password must be at least 8 characters long, include an uppercase letter, a number, and a special character.";
     } else {
         $hash = password_hash($password, PASSWORD_DEFAULT);
-        $update = "UPDATE signup SET user_password=?, reset_token_hash=NULL, reset_token_expires_at=NULL WHERE reset_token_hash=?";
+        $update = "UPDATE users SET user_password=?, reset_token_hash=NULL, reset_token_expires_at=NULL WHERE reset_token_hash=?";
         $stmt = mysqli_prepare($con, $update);
         mysqli_stmt_bind_param($stmt, "ss", $hash, $token_hash);
 
@@ -92,7 +92,7 @@ if (isset($_POST['reset_password']) && isset($_GET['token'])) {
         </div>
 
         <div class="d-grid">
-            <input type="submit" name="reset_password" value="Reset Password" class="btn btn-primary">
+            <input type="submit" name="reset_password" value="Reset Password" class="btn btn-dark">
         </div>
     </form>
     <?php endif; ?>

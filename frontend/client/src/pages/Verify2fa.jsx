@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import buildApiUrl from "../utils/api";
 
 const Verify2FA = () => {
   const [code, setCode] = useState("");
@@ -28,7 +27,7 @@ const Verify2FA = () => {
 
     try {
       const res = await fetch(
-        buildApiUrl('/config/verify_2fa.php'),
+        "http://localhost/crtv-shots-website/backend/api/config/verify_2fa.php",
         {
           method: "POST",
           body: formData,
@@ -65,7 +64,7 @@ const Verify2FA = () => {
       formData.append("user_email", email);
 
       const res = await fetch(
-        buildApiUrl('/config/resend_2fa.php'),
+        "http://localhost/crtv-shots-website/backend/api/config/resend_2fa.php",
         {
           method: "POST",
           body: formData,
@@ -87,68 +86,68 @@ const Verify2FA = () => {
     }
   };
 
-  return (
-    <div className="min-h-screen flex flex-col justify-center items-center bg-gray-900 text-white px-4">
-      <h1 className="text-4xl mb-4 font-bold">2FA Verification</h1>
-      <p className="mb-6 text-center">
-        Enter the 6-digit verification code sent to your email.
-      </p>
+ return (
+  <div className="min-h-screen flex flex-col justify-center items-center bg-gray-100 text-gray-900 px-4">
+    <h1 className="text-4xl mb-4 font-bold">2FA Verification</h1>
+    <p className="mb-6 text-center text-gray-700">
+      Enter the 6-digit verification code sent to your email.
+    </p>
 
-      {error && <p className="mb-4 text-red-500">{error}</p>}
-      {message && <p className="mb-4 text-green-500">{message}</p>}
+    {error && <p className="mb-4 text-red-600">{error}</p>}
+    {message && <p className="mb-4 text-green-600">{message}</p>}
 
-      <form
-        onSubmit={handleVerify}
-        className="flex flex-col w-full max-w-sm gap-4"
+    <form
+      onSubmit={handleVerify}
+      className="flex flex-col w-full max-w-sm gap-4 bg-white p-6 rounded-2xl shadow-md"
+    >
+      <input
+        type="text"
+        placeholder="Enter 6-digit code"
+        value={code}
+        onChange={(e) => {
+          const value = e.target.value.replace(/\D/g, "");
+          if (value.length <= 6) setCode(value);
+        }}
+        maxLength={6}
+        inputMode="numeric"
+        pattern="\d{6}"
+        className="p-3 rounded border border-gray-300 text-center tracking-widest text-lg focus:outline-none focus:ring-2 focus:ring-[#06d6a0]"
+        required
+      />
+
+      <button
+        type="submit"
+        className="bg-[#06d6a0] text-black p-3 rounded font-bold hover:bg-[#05b389] transition"
       >
-        <input
-          type="text"
-          placeholder="Enter 6-digit code"
-          value={code}
-          onChange={(e) => {
-            const value = e.target.value.replace(/\D/g, "");
-            if (value.length <= 6) setCode(value);
-          }}
-          maxLength={6}
-          inputMode="numeric"
-          pattern="\d{6}"
-          className="p-2 rounded bg-gray-800 text-white text-center tracking-widest text-lg"
-          required
-        />
+        Verify
+      </button>
+    </form>
 
-        <button
-          type="submit"
-          className="bg-[#06d6a0] text-black p-2 rounded font-bold hover:bg-[#05b389]"
-        >
-          Verify
-        </button>
-      </form>
+    {/* Resend link */}
+    <p className="mt-4 text-center text-gray-700">
+      Didn’t get the code?{" "}
+      <button
+        onClick={handleResendCode}
+        disabled={resending}
+        className={`text-blue-600 hover:underline font-medium ${
+          resending ? "opacity-50 cursor-not-allowed" : ""
+        }`}
+      >
+        {resending ? "Resending..." : "Resend Code"}
+      </button>
+    </p>
 
-      {/* Resend link */}
-      <p className="mt-4 text-center">
-        Didn’t get the code?{" "}
-        <button
-          onClick={handleResendCode}
-          disabled={resending}
-          className={`text-black hover:underline ${
-            resending ? "opacity-50 cursor-not-allowed" : ""
-          }`}
-        >
-          {resending ? "Resending..." : "Resend Code"}
-        </button>
-      </p>
-
-         {/* Back to Login */}
-      <p className="mt-4 text-center">
-        <button
-          onClick={() => navigate("/login")}
-          className="text-black hover:underline"
-        >
-          Back to Login
-        </button>
-      </p>
-    </div>
-  );
+    {/* Back to Login */}
+    <p className="mt-2 text-center">
+      <button
+        onClick={() => navigate("/login")}
+        className="text-blue-600 hover:underline font-medium"
+      >
+        Back to Login
+      </button>
+    </p>
+  </div>
+);
 };
 
 export default Verify2FA;

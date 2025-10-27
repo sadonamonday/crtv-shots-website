@@ -22,7 +22,7 @@ if (!isset($_POST['user_email'])) {
 }
 
 $email = trim($_POST['user_email']);
-$stmt = $con->prepare("SELECT user_id FROM signup WHERE user_email = ?");
+$stmt = $con->prepare("SELECT user_id FROM users WHERE user_email = ?");
 $stmt->bind_param("s", $email);
 $stmt->execute();
 $result = $stmt->get_result();
@@ -36,7 +36,7 @@ $row = $result->fetch_assoc();
 $twoFA = rand(100000, 999999);
 $expires = date("Y-m-d H:i:s", strtotime("+5 minutes"));
 
-$update = $con->prepare("UPDATE signup SET two_factor_code = ?, two_factor_expires_at = ? WHERE user_id = ?");
+$update = $con->prepare("UPDATE users SET two_factor_code = ?, two_factor_expires_at = ? WHERE user_id = ?");
 $update->bind_param("ssi", $twoFA, $expires, $row['user_id']);
 $update->execute();
 

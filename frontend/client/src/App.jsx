@@ -17,6 +17,11 @@ import Profile from "./pages/Profile.jsx";
 import AdminLogin from "./pages/admin/AdminLogin.jsx";
 import AdminSignup from "./pages/admin/AdminSignup.jsx";
 import Verify2FAAdmin from "./pages/admin/Verify2FAAdmin.jsx";
+import { UserProvider } from "./context/UserContext.jsx";
+import { CartProvider } from "./context/CartContext.jsx";
+import ProductDetail from './pages/ProductDetail';
+import Cart from "./pages/Cart.jsx";
+import Checkout from "./pages/Checkout.jsx";
 
 const Orders = React.lazy(() => import('./pages/admin/Orders.jsx'));
 const Bookings = React.lazy(() => import('./pages/admin/Bookings.jsx'));
@@ -64,6 +69,8 @@ class ErrorBoundary extends React.Component {
 function App() {
     return (
         <BrowserRouter>
+         <UserProvider>
+                <CartProvider>
             <ErrorBoundary>
                 <Routes>
                     <Route path="/" element={<Home/>} />
@@ -98,8 +105,13 @@ function App() {
                     <Route path="/admin/availability" element={<React.Suspense fallback={<div style={{padding:24,color:'#fff'}}>Loading…</div>}><Availability/></React.Suspense>} />
                     <Route path="/admin/coupons" element={<React.Suspense fallback={<div style={{padding:24,color:'#fff'}}>Loading…</div>}><Coupons/></React.Suspense>} />
                     <Route path="/payment-success" element={<PaymentSuccess />} />
+                    <Route path="/product/:id" element={<ProductDetail />} />
+                    <Route path="/cart" element={<Cart />} />
+                    <Route path="/checkout" element={<Checkout />} />
                 </Routes>
             </ErrorBoundary>
+             </CartProvider>
+                        </UserProvider>
         </BrowserRouter>
     );
 }

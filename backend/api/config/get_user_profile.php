@@ -13,7 +13,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
-    $stmt = $con->prepare("SELECT user_firstname, user_surname, user_username, user_email, user_address, user_contact FROM signup WHERE user_email=?");
+    $stmt = $con->prepare("SELECT user_firstname, user_surname, user_username, user_email, user_address, user_contact FROM users WHERE user_email=?");
     $stmt->bind_param("s", $email);
     $stmt->execute();
     $result = $stmt->get_result();

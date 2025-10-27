@@ -1,22 +1,15 @@
 <?php
 header("Access-Control-Allow-Origin: http://localhost:5173");
+header("Access-Control-Allow-Headers: Content-Type");
+header("Access-Control-Allow-Methods: POST");
 header("Access-Control-Allow-Credentials: true");
-header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
-header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With");
+header("Content-Type: application/json");
 
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    http_response_code(200);
-    exit;
-}
-header('Content-Type: application/json');
-
-include 'database.php';
-require_once __DIR__ . '/toggles.php';
+include "database.php";
 session_start();
 
-// Use Composer autoloader for PHPMailer
-require __DIR__ . "/../../../vendor/autoload.php";
-
+// Include PHPMailer classes manually
+require __DIR__ . '/../../../vendor/autoload.php';
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
@@ -29,7 +22,7 @@ $email = trim($_POST['user_email']);
 $password = trim($_POST['user_password']);
 
 // Fetch user
-$stmt = $con->prepare("SELECT user_id, user_password, two_factor_code, two_factor_expires_at, email_verified FROM signup WHERE user_email = ?");
+$stmt = $con->prepare("SELECT user_id, user_password, two_factor_code, two_factor_expires_at, email_verified FROM users WHERE user_email = ?");
 $stmt->bind_param("s", $email);
 $stmt->execute();
 $result = $stmt->get_result();
@@ -38,6 +31,7 @@ if ($result->num_rows === 0) {
     echo json_encode(["success" => false, "message" => "Email not registered."]);
     exit;
 }
+
 
 $row = $result->fetch_assoc();
 
@@ -52,24 +46,13 @@ if ($row['email_verified'] == 0) {
     exit;
 }
 
+
 // Verify password
 if (!password_verify($password, $row['user_password'])) {
     echo json_encode(["success" => false, "message" => "Incorrect password."]);
     exit;
 }
 
-// If 2FA is disabled, bypass and log user in directly
-if (defined('DISABLE_2FA') && DISABLE_2FA === true) {
-    $_SESSION['user_id'] = $row['user_id'];
-    echo json_encode([
-        "success" => true,
-        "two_fa" => false,
-        "message" => "2FA temporarily disabled. Logged in successfully."
-    ]);
-    $stmt->close();
-    $con->close();
-    exit;
-}
 
 // Generate 2FA code only if it doesn't exist or expired
 $current_time = date("Y-m-d H:i:s");
@@ -77,7 +60,7 @@ if (empty($row['two_factor_code']) || $row['two_factor_expires_at'] < $current_t
     $twoFA = rand(100000, 999999); // 6-digit code
     $expires = date("Y-m-d H:i:s", strtotime("+5 minutes")); // code valid 5 minutes
 
-    $update = $con->prepare("UPDATE signup SET two_factor_code = ?, two_factor_expires_at = ? WHERE user_id = ?");
+    $update = $con->prepare("UPDATE users SET two_factor_code = ?, two_factor_expires_at = ? WHERE user_id = ?");
     $update->bind_param("ssi", $twoFA, $expires, $row['user_id']);
     $update->execute();
     $update->close();
@@ -107,8 +90,8 @@ if (empty($row['two_factor_code']) || $row['two_factor_expires_at'] < $current_t
     }
 }
 
-// Mark session as pending 2FA
-$_SESSION['user_id'] = $row['user_id'];
+// Set session
+//$_SESSION['user_id'] = $row['user_id'];
 
 echo json_encode([
     "success" => true,

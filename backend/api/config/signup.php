@@ -10,7 +10,7 @@ $errors = [];
 $username_suggestions = [];
 
 // ---------- FORM HANDLER ----------
-if (isset($_POST['signup'])) {
+if (isset($_POST['users'])) {
     $user_firstname = trim($_POST['user_firstname']);
     $user_surname = trim($_POST['user_surname']);
     $user_username = trim($_POST['user_username']);
@@ -47,14 +47,14 @@ if (isset($_POST['signup'])) {
     if (empty($user_address)) $errors[] = "Address is required.";
 
     // ---------- CHECK USERNAME ----------
-    $stmt = $con->prepare("SELECT user_id FROM signup WHERE user_username=?");
+    $stmt = $con->prepare("SELECT user_id FROM users WHERE user_username=?");
     $stmt->bind_param("s", $user_username);
     $stmt->execute();
     if ($stmt->get_result()->num_rows > 0) {
         $errors[] = "Username already exists.";
         for ($i = 0; $i < 5; $i++) {
             $suggest = $user_username . rand(10, 99);
-            $r = $con->prepare("SELECT user_id FROM signup WHERE user_username=?");
+            $r = $con->prepare("SELECT user_id FROM users WHERE user_username=?");
             $r->bind_param("s", $suggest);
             $r->execute();
             if ($r->get_result()->num_rows == 0) $username_suggestions[] = $suggest;
@@ -63,7 +63,7 @@ if (isset($_POST['signup'])) {
     $stmt->close();
 
     // ---------- CHECK EMAIL ----------
-    $stmt = $con->prepare("SELECT user_id FROM signup WHERE user_email=?");
+    $stmt = $con->prepare("SELECT user_id FROM users WHERE user_email=?");
     $stmt->bind_param("s", $user_email);
     $stmt->execute();
     if ($stmt->get_result()->num_rows > 0)
@@ -77,12 +77,12 @@ if (isset($_POST['signup'])) {
         $expires = date("Y-m-d H:i:s", strtotime("+1 day"));
         if (preg_match('/^0[0-9]{9}$/', $user_contact)) $user_contact = '+27' . substr($user_contact, 1);
 
-        $insert = $con->prepare("INSERT INTO signup (user_firstname,user_surname,user_username,user_email,user_password,user_ip,user_address,user_contact,verification_token,verification_token_expires_at) VALUES (?,?,?,?,?,?,?,?,?,?)");
+        $insert = $con->prepare("INSERT INTO users (user_firstname,user_surname,user_username,user_email,user_password,user_ip,user_address,user_contact,verification_token,verification_token_expires_at) VALUES (?,?,?,?,?,?,?,?,?,?)");
         $user_ip = $_SERVER['REMOTE_ADDR'];
         $insert->bind_param("ssssssssss", $user_firstname, $user_surname, $user_username, $user_email, $hash_password, $user_ip, $user_address, $user_contact, $token, $expires);
 
         if ($insert->execute()) {
-            $verify_link = "http://localhost/crtv-shots-website/backend/api/config/verify_email.php?token=$token";
+            $verify_link = "http://localhost/crtv-shots-website/backend/config/verify_email.php?token=$token";
             $mail = new PHPMailer(true);
             try {
                 $mail->isSMTP();
@@ -202,10 +202,10 @@ body { background: #f8f9fa; }
     </div>
 
     <div class="d-grid mt-3">
-      <button type="submit" name="signup" class="btn btn-primary">Sign Up</button>
+      <button type="submit" name="users" class="btn btn-dark">Sign Up</button>
     </div>
 
-        <p class="mt-2 text-center">Already have an account? 
+    <p class="mt-2 text-center">Already have an account? 
       <a href="http://localhost:5173/login" class="text-danger">Login</a>
     </p>
   </form>
@@ -252,8 +252,8 @@ document.getElementById('user_username').addEventListener('input', e=>{
   fetch('check_username.php?username='+encodeURIComponent(val))
   .then(res=>res.json())
   .then(data=>{
-    if(data.available){ markField(e.target,true); fb.textContent='✅ Username available'; fb.className='form-text text-success'; }
-    else{ markField(e.target,false); fb.innerHTML='❌ Username taken. Try: '+data.suggestions.join(', '); fb.className='form-text text-danger'; }
+    if(data.available){ markField(e.target,true); fb.textContent='Username available'; fb.className='form-text text-success'; }
+    else{ markField(e.target,false); fb.innerHTML='Username taken. Try: '+data.suggestions.join(', '); fb.className='form-text text-danger'; }
   });
 });
 

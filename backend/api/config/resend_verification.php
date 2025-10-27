@@ -1,20 +1,17 @@
 <?php
-header("Access-Control-Allow-Origin: http://localhost:5173");
+header("Access-Control-Allow-Origin: http://localhost:5174");
+header("Access-Control-Allow-Headers: Content-Type");
+header("Access-Control-Allow-Methods: POST");
 header("Access-Control-Allow-Credentials: true");
-header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
-header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With");
+header("Content-Type: application/json");
 
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    http_response_code(200);
-    exit;
-}
-header('Content-Type: application/json');
-
-include 'database.php';
+include "database.php";
 session_start();
 
-// Use Composer autoloader for PHPMailer (relative to project root)
-require __DIR__ . "/../../../vendor/autoload.php";
+// PHPMailer
+require 'C:/xampp/htdocs/crtv-shots-website/vendor/phpmailer/phpmailer/src/PHPMailer.php';
+require 'C:/xampp/htdocs/crtv-shots-website/vendor/phpmailer/phpmailer/src/SMTP.php';
+require 'C:/xampp/htdocs/crtv-shots-website/vendor/phpmailer/phpmailer/src/Exception.php';
 
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
@@ -27,7 +24,7 @@ if (!isset($_POST['user_email'])) {
 $email = trim($_POST['user_email']);
 
 // Fetch user
-$stmt = $con->prepare("SELECT user_id, email_verified, verification_token FROM signup WHERE user_email = ?");
+$stmt = $con->prepare("SELECT user_id, email_verified, verification_token FROM users WHERE user_email = ?");
 $stmt->bind_param("s", $email);
 $stmt->execute();
 $result = $stmt->get_result();
@@ -51,7 +48,7 @@ if ($row['email_verified'] == 1) {
 // Generate new verification token if not exist
 if (empty($row['verification_token'])) {
     $token = bin2hex(random_bytes(16));
-    $stmt_update = $con->prepare("UPDATE signup SET verification_token = ? WHERE user_id = ?");
+    $stmt_update = $con->prepare("UPDATE users SET verification_token = ? WHERE user_id = ?");
     $stmt_update->bind_param("si", $token, $row['user_id']);
     $stmt_update->execute();
     $stmt_update->close();
@@ -60,7 +57,7 @@ if (empty($row['verification_token'])) {
 }
 
 // Send verification email
-$verificationLink = "http://localhost:8000/config/verify_email.php?token=$token";
+$verificationLink = "http://localhost/crtv-shots-website/backend/api/config/verify_email.php?token=$token";
 
 $mail = new PHPMailer(true);
 try {

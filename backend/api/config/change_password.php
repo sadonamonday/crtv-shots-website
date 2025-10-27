@@ -16,7 +16,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     // Fetch current password hash
-    $stmt = $con->prepare("SELECT user_password FROM signup WHERE user_email=?");
+    $stmt = $con->prepare("SELECT user_password FROM users WHERE user_email=?");
     $stmt->bind_param("s", $email);
     $stmt->execute();
     $result = $stmt->get_result();

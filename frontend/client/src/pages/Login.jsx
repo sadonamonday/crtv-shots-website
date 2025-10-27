@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import buildApiUrl from "../utils/api";
+import Header from "../components/common/Header";
+import Footer from "../components/common/Footer";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -18,7 +19,7 @@ const Login = () => {
 
     try {
       const res = await fetch(
-        buildApiUrl('/config/login.php'),
+        "http://localhost/crtv-shots-website/backend/api/config/login.php",
         {
           method: "POST",
           body: formData,
@@ -30,27 +31,9 @@ const Login = () => {
       console.log("Login Response:", data);
 
       if (data.success) {
-        try {
-          // Mark logged-in state; store minimal user info if provided
-          localStorage.setItem("isLoggedIn", "1");
-          if (data.user) {
-            localStorage.setItem("userName", data.user.name || "");
-            if (data.user.avatarUrl) {
-              localStorage.setItem("avatarUrl", data.user.avatarUrl);
-            }
-          }
-        } catch (_) {}
-
-        if (data.two_fa) {
-          // Email verified, proceed to 2FA step
-          sessionStorage.setItem("user_email", email);
-          navigate("/Verify2FA");
-        } else {
-          // 2FA not required (disabled or already verified)
-          navigate("/");
-        }
+        sessionStorage.setItem("user_email", email);
+        navigate("/Verify2FA");
       } else if (data.email_verified === false) {
-        // Show error and allow resend
         setError(data.message || "Please verify your email first.");
       } else {
         setError(data.message || "Login failed. Please try again.");
@@ -66,7 +49,7 @@ const Login = () => {
       const formData = new FormData();
       formData.append("user_email", email);
       const res = await fetch(
-        buildApiUrl('/config/resend_verification.php'),
+        "http://localhost/crtv-shots-website/backend/api/config/resend_verification.php",
         {
           method: "POST",
           body: formData,
@@ -81,54 +64,87 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col justify-center items-center bg-gray-900 text-white">
-      <h1 className="text-4xl mb-6">Login</h1>
-      {error && <p className="mb-4 text-red-500">{error}</p>}
-      <form onSubmit={handleLogin} className="flex flex-col w-full max-w-sm gap-4">
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="p-2 rounded bg-gray-800 text-white"
-          required
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="p-2 rounded bg-gray-800 text-white"
-          required
-        />
-        <button
-          type="submit"
-          className="bg-[#06d6a0] text-black p-2 rounded font-bold"
-        >
-          Login
-        </button>
-      </form>
+    <div className="flex flex-col min-h-screen bg-gray-50 text-gray-900">
+      {/* Header */}
+      <Header />
 
-      {/* Links for Signup and Forgot Password */}
-      <div className="mt-4 text-center">
-        <p>
-          Don't have an account?{" "}
-          <button
-            onClick={() => navigate('/signup')}
-            className="text-[#06d6a0] hover:underline"
+      {/* Main Login Form */}
+      <main className="flex-grow flex flex-col justify-center items-center px-4">
+        <div className="w-full max-w-md bg-white shadow-lg rounded-2xl p-8">
+          <h1 className="text-3xl font-semibold text-center mb-6 text-gray-800">
+            Login
+          </h1>
+
+          {/* Error Message */}
+          {error && (
+            <div className="mb-4 text-center text-red-600 bg-red-100 p-2 rounded">
+              {error}
+              {error.toLowerCase().includes("verify your email") && (
+                <button
+                  type="button"
+                  className="ml-2 underline text-blue-600"
+                  onClick={handleResendVerification}
+                >
+                  Resend Verification Email
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* Login Form */}
+          <form
+            onSubmit={handleLogin}
+            className="flex flex-col gap-4"
           >
-            Sign up
-          </button>
-        </p>
-        <p className="mt-2">
-          <a
-            href={buildApiUrl('/config/forgot_password.php')}
-            className="text-[#06d6a0] hover:underline"
-          >
-            Forgot Password?
-          </a>
-        </p>
-      </div>
+            <input
+              type="email"
+              placeholder="Email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="p-3 border border-gray-300 rounded focus:ring-2 focus:ring-blue-400 focus:outline-none"
+              required
+            />
+            <input
+              type="password"
+              placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="p-3 border border-gray-300 rounded focus:ring-2 focus:ring-blue-400 focus:outline-none"
+              required
+            />
+            <button
+              type="submit"
+              className="bg-[#06d6a0] text-black p-3 rounded font-semibold hover:bg-[#05b88c] transition"
+            >
+              Login
+            </button>
+          </form>
+
+          {/* Signup / Forgot Password */}
+          <div className="mt-6 text-center text-sm">
+            <p>
+              Don't have an account?{" "}
+              <a
+                href="http://localhost/crtv-shots-website/backend/api/config/signup.php"
+                className="text-blue-600 hover:underline font-medium"
+              >
+                Sign up
+              </a>
+            </p>
+            <p className="mt-2">
+              <a
+                href="http://localhost/crtv-shots-website/backend/api/config/forgot_password.php"
+                className="text-blue-600 hover:underline font-medium"
+              >
+                Forgot Password?
+              </a>
+            </p>
+          </div>
+        </div>
+      </main>
+
+      {/* Footer */}
+      <Footer />
     </div>
   );
 };

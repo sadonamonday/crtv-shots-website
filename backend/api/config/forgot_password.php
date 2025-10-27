@@ -18,7 +18,7 @@ if (isset($_POST['forgot_password'])) {
     $email_val = htmlspecialchars($user_email);
 
     // Check if email exists
-    $check_query = "SELECT * FROM `signup` WHERE user_email=?";
+    $check_query = "SELECT * FROM `users` WHERE user_email=?";
     $stmt = mysqli_prepare($con, $check_query);
     mysqli_stmt_bind_param($stmt, "s", $user_email);
     mysqli_stmt_execute($stmt);
@@ -31,7 +31,7 @@ if (isset($_POST['forgot_password'])) {
         $expiry = date("Y-m-d H:i:s", strtotime('+1 hour'));
 
         // Update DB
-        $update_query = "UPDATE `signup` 
+        $update_query = "UPDATE `users` 
                          SET reset_token_hash=?, reset_token_expires_at=? 
                          WHERE user_email=?";
         $stmt = mysqli_prepare($con, $update_query);
@@ -52,7 +52,7 @@ if (isset($_POST['forgot_password'])) {
             $mail->setFrom('your-email@gmail.com', 'CRTVSHOTS');
             $mail->addAddress($user_email);
 
-            $reset_link = "http://localhost:8000/config/reset_password.php?token=$token";
+            $reset_link = "http://localhost/crtv-shots-website/backend/api/config/reset_password.php?token=$token";
 
             $mail->isHTML(true);
             $mail->Subject = "Password Reset Request";
@@ -95,7 +95,7 @@ if (isset($_POST['forgot_password'])) {
             <input type="email" name="user_email" class="form-control" placeholder="Enter Gmail" required value="<?php echo $email_val; ?>">
         </div>
         <div class="d-grid mt-3">
-            <input type="submit" name="forgot_password" class="btn btn-primary" value="Send Reset Link">
+            <input type="submit" name="forgot_password" class="btn btn-dark" value="Send Reset Link">
         </div>
     </form>
     <p class="text-center mt-3">
